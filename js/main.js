@@ -40,7 +40,7 @@
     const step = (now) => {
       const p = Math.min((now - start) / dur, 1);
       const v = Math.round(target * (1 - Math.pow(1 - p, 3)));
-      el.textContent = (p === 1 ? "+" : "") + v.toLocaleString("pt-BR");
+      el.textContent = v.toLocaleString("pt-BR");
       if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
@@ -61,18 +61,6 @@
   } else {
     document.querySelectorAll(".reveal").forEach((el) => el.classList.add("is-visible"));
   }
-
-  // Filtro do portfólio
-  const filters = document.querySelectorAll(".filter");
-  filters.forEach((btn) =>
-    btn.addEventListener("click", () => {
-      filters.forEach((b) => b.classList.toggle("is-active", b === btn));
-      const f = btn.dataset.filter;
-      document.querySelectorAll(".project").forEach((p) => {
-        p.classList.toggle("is-hidden", f !== "all" && p.dataset.cat !== f);
-      });
-    })
-  );
 
   // Links de WhatsApp
   document.querySelectorAll("[data-whatsapp]").forEach((a) => {
