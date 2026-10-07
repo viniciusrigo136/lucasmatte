@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lucas Matte Arquitetura</title>
+  <meta name="description" content="Lucas Matte Arquitetura — projetos residenciais, comerciais e de interiores com foco em luz, materialidade e bem-estar." />
+  <meta property="og:title" content="Lucas Matte Arquitetura" />
+  <meta property="og:description" content="Arquitetura e interiores com identidade, do conceito à obra." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- ===================== HEADER ===================== -->
+  <header class="header" id="topo">
+    <div class="container header__inner">
+      <a href="#topo" class="logo" aria-label="Lucas Matte Arquitetura — início">
+        <span class="logo__mark">LM</span>
+        <span class="logo__text">Lucas Matte <small>Arquitetura</small></span>
+      </a>
+      <button class="nav-toggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span>
+      </button>
+      <nav class="nav" id="nav">
+        <a href="#sobre">Sobre</a>
+        <a href="#servicos">Serviços</a>
+        <a href="#projetos">Projetos</a>
+        <a href="#processo">Processo</a>
+        <a href="#contato" class="btn btn--small">Orçamento</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- ===================== HERO ===================== -->
+    <section class="hero">
+      <div class="hero__media photo"><img src="assets/img/hero.jpg" alt="" fetchpriority="high" /></div>
+      <div class="container hero__content">
+        <p class="eyebrow">Arquitetura &amp; Interiores</p>
+        <h1>Espaços que traduzem<br /><em>quem você é.</em></h1>
+        <p class="hero__lead">Projetos autorais residenciais e comerciais, pensados a partir da luz, dos materiais e da forma como você vive.</p>
+        <div class="hero__actions">
+          <a href="#contato" class="btn">Solicitar orçamento</a>
+          <a href="#projetos" class="btn btn--ghost">Ver projetos</a>
+        </div>
+      </div>
+      <a href="#sobre" class="hero__scroll" aria-label="Rolar para baixo">↓</a>
+    </section>
+
+    <!-- ===================== SOBRE ===================== -->
+    <section class="section" id="sobre">
+      <div class="container split">
+        <div class="split__media reveal">
+          <div class="photo photo--portrait"><img src="assets/img/lucas.jpg" alt="Retrato do arquiteto Lucas Matte" loading="lazy" /></div>
+        </div>
+        <div class="split__text reveal">
+          <p class="eyebrow">Sobre</p>
+          <h2>Arquitetura feita com escuta, precisão e sensibilidade.</h2>
+          <!-- TODO: substituir pela bio real do Lucas (formação, CAU, cidade, tempo de atuação) -->
+          <p>Sou Lucas Matte, arquiteto e urbanista. Meu trabalho parte de uma conversa: entender a rotina, os desejos e o orçamento de cada cliente para transformar isso em um espaço funcional, atemporal e cheio de personalidade.</p>
+          <p>Acompanho cada etapa — do estudo preliminar ao último detalhe da obra — para que o resultado final seja fiel ao que foi projetado.</p>
+          <ul class="stats">
+            <li><strong data-count="80">0</strong><span>projetos entregues</span></li>
+            <li><strong data-count="8">0</strong><span>anos de experiência</span></li>
+            <li><strong data-count="15000">0</strong><span>m² projetados</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SERVIÇOS ===================== -->
+    <section class="section section--alt" id="servicos">
+      <div class="container">
+        <div class="section__head reveal">
+          <p class="eyebrow">Serviços</p>
+          <h2>Do conceito à chave na mão.</h2>
+        </div>
+        <div class="cards">
+          <article class="card reveal">
+            <span class="card__num">01</span>
+            <h3>Projeto Residencial</h3>
+            <p>Casas e apartamentos projetados do zero ou reformados, com foco em conforto, iluminação natural e fluidez entre ambientes.</p>
+          </article>
+          <article class="card reveal">
+            <span class="card__num">02</span>
+            <h3>Interiores</h3>
+            <p>Layout, marcenaria, iluminação, revestimentos e curadoria de mobiliário para ambientes coerentes e cheios de identidade.</p>
+          </article>
+          <article class="card reveal">
+            <span class="card__num">03</span>
+            <h3>Comercial &amp; Corporativo</h3>
+            <p>Lojas, escritórios, clínicas e espaços gastronômicos que reforçam a marca e melhoram a experiência do cliente.</p>
+          </article>
+          <article class="card reveal">
+            <span class="card__num">04</span>
+            <h3>Acompanhamento de Obra</h3>
+            <p>Visitas técnicas e gestão junto aos fornecedores para garantir qualidade de execução, prazo e fidelidade ao projeto.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PROJETOS ===================== -->
+    <section class="section" id="projetos">
+      <div class="container">
+        <div class="section__head section__head--row reveal">
+          <div>
+            <p class="eyebrow">Portfólio</p>
+            <h2>Projetos selecionados</h2>
+          </div>
+          <div class="filters" role="tablist" aria-label="Filtrar projetos">
+            <button class="filter is-active" data-filter="all">Todos</button>
+            <button class="filter" data-filter="residencial">Residencial</button>
+            <button class="filter" data-filter="interiores">Interiores</button>
+            <button class="filter" data-filter="comercial">Comercial</button>
+          </div>
+        </div>
+
+        <!-- TODO: trocar nomes, locais e imagens pelos projetos reais (ver assets/img/README.md) -->
+        <div class="grid">
+          <figure class="project project--tall reveal" data-cat="residencial">
+            <div class="photo"><img src="assets/img/projeto-1.jpg" alt="" loading="lazy" /></div>
+            <figcaption><h3>Casa Horizonte</h3><span>Residencial · 320 m²</span></figcaption>
+          </figure>
+          <figure class="project reveal" data-cat="interiores">
+            <div class="photo"><img src="assets/img/projeto-2.jpg" alt="" loading="lazy" /></div>
+            <figcaption><h3>Apartamento Jardins</h3><span>Interiores · 140 m²</span></figcaption>
+          </figure>
+          <figure class="project reveal" data-cat="comercial">
+            <div class="photo"><img src="assets/img/projeto-3.jpg" alt="" loading="lazy" /></div>
+            <figcaption><h3>Café Terra</h3><span>Comercial · 90 m²</span></figcaption>
+          </figure>
+          <figure class="project reveal" data-cat="interiores">
+            <div class="photo"><img src="assets/img/projeto-4.jpg" alt="" loading="lazy" /></div>
+            <figcaption><h3>Loft Industrial</h3><span>Interiores · 75 m²</span></figcaption>
+          </figure>
+          <figure class="project project--wide reveal" data-cat="residencial">
+            <div class="photo"><img src="assets/img/projeto-5.jpg" alt="" loading="lazy" /></div>
+            <figcaption><h3>Residência Serra</h3><span>Residencial · 410 m²</span></figcaption>
+          </figure>
+          <figure class="project reveal" data-cat="comercial">
+            <div class="photo"><img src="assets/img/projeto-6.jpg" alt="" loading="lazy" /></div>
+            <figcaption><h3>Clínica Essenza</h3><span>Comercial · 180 m²</span></figcaption>
+          </figure>
+        </div>
+
+        <div class="center reveal">
+          <a href="https://www.instagram.com/lucasmattearquitetura" target="_blank" rel="noopener" class="btn btn--ghost">Mais projetos no Instagram</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PROCESSO ===================== -->
+    <section class="section section--dark" id="processo">
+      <div class="container">
+        <div class="section__head reveal">
+          <p class="eyebrow">Como trabalho</p>
+          <h2>Um processo claro, do primeiro café à entrega.</h2>
+        </div>
+        <ol class="steps">
+          <li class="reveal"><span>01</span><h3>Briefing</h3><p>Conversa inicial para entender necessidades, estilo de vida, prazos e investimento.</p></li>
+          <li class="reveal"><span>02</span><h3>Estudo Preliminar</h3><p>Conceito, layout e primeiras imagens 3D para validar a ideia juntos.</p></li>
+          <li class="reveal"><span>03</span><h3>Projeto Executivo</h3><p>Detalhamento técnico completo: plantas, cortes, marcenaria, elétrica e iluminação.</p></li>
+          <li class="reveal"><span>04</span><h3>Obra &amp; Entrega</h3><p>Acompanhamento da execução até o último detalhe estar no lugar.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ===================== DEPOIMENTOS ===================== -->
+    <!-- TODO: substituir por depoimentos reais de clientes (com autorização) -->
+    <section class="section section--alt">
+      <div class="container">
+        <div class="section__head reveal">
+          <p class="eyebrow">Depoimentos</p>
+          <h2>O que dizem os clientes</h2>
+        </div>
+        <div class="quotes">
+          <blockquote class="quote reveal">
+            <p>“[Depoimento do cliente] — espaço reservado para um depoimento real sobre a experiência com o projeto.”</p>
+            <cite>Nome do cliente · Projeto</cite>
+          </blockquote>
+          <blockquote class="quote reveal">
+            <p>“[Depoimento do cliente] — espaço reservado para um depoimento real sobre a experiência com o projeto.”</p>
+            <cite>Nome do cliente · Projeto</cite>
+          </blockquote>
+          <blockquote class="quote reveal">
+            <p>“[Depoimento do cliente] — espaço reservado para um depoimento real sobre a experiência com o projeto.”</p>
+            <cite>Nome do cliente · Projeto</cite>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CONTATO ===================== -->
+    <section class="section" id="contato">
+      <div class="container split split--contact">
+        <div class="reveal">
+          <p class="eyebrow">Contato</p>
+          <h2>Vamos tirar seu projeto do papel?</h2>
+          <p>Conte um pouco sobre o que você precisa. Respondo em até 1 dia útil com os próximos passos.</p>
+          <ul class="contact-list">
+            <!-- TODO: preencher WhatsApp, e-mail e cidade reais -->
+            <li><span>WhatsApp</span><a href="#" data-whatsapp>(00) 00000-0000</a></li>
+            <li><span>E-mail</span><a href="mailto:contato@lucasmatte.com.br">contato@lucasmatte.com.br</a></li>
+            <li><span>Instagram</span><a href="https://www.instagram.com/lucasmattearquitetura" target="_blank" rel="noopener">@lucasmattearquitetura</a></li>
+            <li><span>Atendimento</span><p>Cidade – UF · Projetos presenciais e online</p></li>
+          </ul>
+        </div>
+
+        <form class="form reveal" id="contact-form" novalidate>
+          <div class="field">
+            <label for="nome">Nome</label>
+            <input id="nome" name="nome" type="text" autocomplete="name" required />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="telefone">WhatsApp</label>
+              <input id="telefone" name="telefone" type="tel" autocomplete="tel" required />
+            </div>
+            <div class="field">
+              <label for="tipo">Tipo de projeto</label>
+              <select id="tipo" name="tipo">
+                <option>Residencial</option>
+                <option>Interiores</option>
+                <option>Comercial</option>
+                <option>Reforma</option>
+                <option>Outro</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="mensagem">Conte sobre o projeto</label>
+            <textarea id="mensagem" name="mensagem" rows="4" placeholder="Metragem, cidade, prazo desejado..."></textarea>
+          </div>
+          <button type="submit" class="btn btn--full">Enviar pelo WhatsApp</button>
+          <p class="form__note">Ao enviar, você será direcionado ao WhatsApp com a mensagem pronta.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="logo__text">Lucas Matte <small>Arquitetura</small></span>
+      <p>© <span id="year"></span> Lucas Matte Arquitetura. Todos os direitos reservados.</p>
+      <a href="https://www.instagram.com/lucasmattearquitetura" target="_blank" rel="noopener">Instagram ↗</a>
+    </div>
+  </footer>
+
+  <a href="#" class="whatsapp-float" data-whatsapp aria-label="Falar no WhatsApp">
+    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path fill="currentColor" d="M17.47 14.38c-.3-.15-1.75-.86-2.02-.96-.27-.1-.47-.15-.67.15-.2.3-.77.96-.94 1.16-.17.2-.35.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.79-1.47-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.6-.92-2.2-.24-.58-.49-.5-.67-.5h-.57c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48s1.07 2.88 1.21 3.08c.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.63.71.22 1.36.19 1.87.12.57-.09 1.75-.72 2-1.41.25-.7.25-1.29.17-1.41-.07-.13-.27-.2-.57-.35zM12.04 21.5h-.01a9.43 9.43 0 0 1-4.8-1.32l-.35-.2-3.57.93.95-3.48-.22-.36a9.4 9.4 0 0 1-1.44-5.02c0-5.2 4.24-9.44 9.45-9.44a9.38 9.38 0 0 1 9.43 9.45c0 5.2-4.24 9.44-9.44 9.44zm8.03-17.47A11.3 11.3 0 0 0 12.04.7C5.78.7.68 5.8.68 12.05c0 2 .52 3.95 1.52 5.67L.58 23.3l5.72-1.5a11.3 11.3 0 0 0 5.73 1.47h.01c6.26 0 11.36-5.1 11.36-11.36 0-3.03-1.18-5.89-3.33-8.03z"/></svg>
+  </a>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
