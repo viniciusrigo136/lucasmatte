@@ -1,0 +1,454 @@
+---
+import { Picture } from 'astro:assets';
+import SectionHeading from './SectionHeading.astro';
+import { getProject, projectImage } from '../data/projetos';
+
+/**
+ * Cada área mostra uma foto de um projeto real. A legenda informa sempre o projeto
+ * e a categoria verdadeira dele (não há projeto classificado como Comercial nos dados).
+ */
+const areas = [
+  {
+    n: '01',
+    title: 'Residencial',
+    text: 'Espaços pensados para acolher a rotina e expressar a identidade de quem mora.',
+    slug: 'casa-de-campo',
+    file: 'dsc09290.jpg',
+  },
+  {
+    n: '02',
+    title: 'Comercial',
+    text: 'Ambientes que conectam funcionalidade, experiência e identidade do negócio.',
+    slug: 'decorare',
+    file: 'dsc08742.jpg',
+  },
+  {
+    n: '03',
+    title: 'Interiores',
+    text: 'Materiais, iluminação e composição em diálogo com a forma de usar cada ambiente.',
+    slug: 'casa-nova-erechim',
+    file: 'dsc07014.jpg',
+  },
+].map((a) => {
+  const project = getProject(a.slug)!;
+  const img = project.images.find((i) => i.file === a.file)!;
+  return { ...a, src: projectImage(a.slug, a.file), alt: img.alt, caption: `${project.title} — ${project.category}` };
+});
+---
+
+<section id="atuacao" class="areas" aria-labelledby="atuacao-title" data-areas>
+  <div class="wrap areas__grid">
+    <div class="areas__side">
+      <SectionHeading n="04" label="Atuação" lines={['Áreas de', 'atuação']} id="atuacao-title" />
+
+      <!-- Desktop: foto lateral que troca conforme a área em foco -->
+      <figure class="areas__stage" aria-hidden="true">
+        <div class="areas__stack reveal-img" data-reveal-img>
+          <div>
+            {
+              areas.map((a, i) => (
+                <div class:list={['areas__shot', { 'is-active': i === 0 }]} data-shot={i}>
+                  <Picture
+                    src={a.src}
+                    alt=""
+                    widths={[400, 640, 900]}
+                    sizes="(min-width: 64rem) 28vw, 1px"
+                    formats={['avif', 'webp']}
+                    quality={70}
+                  />
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <figcaption class="areas__caption">
+          {areas.map((a, i) => <span class:list={{ 'is-active': i === 0 }} data-cap={i}>{a.caption}</span>)}
+        </figcaption>
+      </figure>
+    </div>
+
+    <ol class="areas__list">
+      {
+        areas.map((a, i) => (
+          <li class:list={['area', { 'is-open': i === 0, 'is-active': i === 0 }]} data-area={i}>
+            <span class="area__rule" data-reveal-line data-delay={String(i * 0.08)} aria-hidden="true" />
+            <h3 class="area__heading">
+              <button
+                type="button"
+                class="area__head"
+                aria-expanded={i === 0 ? 'true' : 'false'}
+                aria-controls={`area-panel-${i}`}
+                id={`area-head-${i}`}
+              >
+                <span class="area__n" data-reveal data-delay={String(i * 0.08)}>{a.n}</span>
+                <span class="area__title">{a.title}</span>
+                <span class="area__arrow" aria-hidden="true">↗</span>
+                <span class="area__toggle" aria-hidden="true" />
+              </button>
+            </h3>
+            <div class="area__panel" id={`area-panel-${i}`} role="region" aria-labelledby={`area-head-${i}`}>
+              <div class="area__panel-inner">
+                <p class="area__text">{a.text}</p>
+                <figure class="area__media">
+                  <div class="area__frame">
+                    <Picture
+                      src={a.src}
+                      alt={a.alt}
+                      widths={[480, 750, 1000]}
+                      sizes="(max-width: 63.99rem) 100vw, 1px"
+                      formats={['avif', 'webp']}
+                      quality={70}
+                    />
+                  </div>
+                  <figcaption>{a.caption}</figcaption>
+                </figure>
+              </div>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>
+
+<style>
+  .areas {
+    padding-block: clamp(5rem, 14vw, 12rem);
+    background: var(--background);
+  }
+  .areas__grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(1rem, 2vw, 2rem);
+    row-gap: 3rem;
+  }
+  .areas__side {
+    grid-column: 1 / span 5;
+    display: grid;
+    gap: clamp(2rem, 5vw, 3.5rem);
+    align-content: start;
+  }
+  .areas__list {
+    grid-column: 7 / span 6;
+    align-self: end;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* ——— Foto lateral (desktop) ——— */
+  .areas__stage {
+    margin: 0;
+    position: sticky;
+    top: calc(var(--header-h-compact) + 2rem);
+  }
+  .areas__stack {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    max-width: 26rem;
+    background: var(--border);
+  }
+  .areas__stack > div {
+    position: absolute;
+    inset: 0;
+  }
+  .areas__shot {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transform: scale(1.05);
+    clip-path: inset(0 0 0 0);
+    transition:
+      opacity 0.7s var(--ease-arch),
+      transform 0.9s var(--ease-arch);
+  }
+  .areas__shot.is-active {
+    opacity: 1;
+    transform: scale(1);
+    z-index: 1;
+  }
+  .areas__shot.is-leaving {
+    opacity: 0;
+    transform: scale(1.03);
+  }
+  .areas__shot :global(picture),
+  .areas__shot :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .areas__caption {
+    position: relative;
+    height: 1.5rem;
+    margin-top: 0.85rem;
+    overflow: hidden;
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .areas__caption span {
+    position: absolute;
+    inset: 0;
+    transform: translateY(110%);
+    transition: transform 0.6s var(--ease-arch);
+  }
+  .areas__caption span.is-active {
+    transform: translateY(0);
+  }
+
+  /* ——— Lista ——— */
+  .area {
+    position: relative;
+  }
+  .area:last-child {
+    border-bottom: 1px solid var(--text-primary);
+  }
+  .area__rule {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    background: var(--text-primary);
+    transform-origin: left;
+  }
+  .area__heading {
+    font: inherit;
+    margin: 0;
+  }
+  .area__head {
+    position: relative;
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+    align-items: baseline;
+    width: 100%;
+    padding: clamp(1.75rem, 3.5vw, 2.75rem) 0 1rem;
+    border: 0;
+    background: none;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .area__n {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    color: var(--text-secondary);
+    transition: color 0.6s var(--ease-arch);
+  }
+  .area__title {
+    font-family: var(--font-serif);
+    font-size: clamp(2.25rem, 1.3rem + 3vw, 4.5rem);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    transform-origin: left;
+    transition: transform 0.8s var(--ease-arch);
+  }
+  .area__arrow {
+    font-size: 1.25rem;
+    opacity: 0;
+    transform: translate(-6px, 6px);
+    transition:
+      opacity 0.6s var(--ease-arch),
+      transform 0.6s var(--ease-arch);
+  }
+  .area__toggle {
+    display: none;
+  }
+  .area__panel {
+    display: grid;
+    grid-template-rows: 1fr;
+  }
+  .area__panel-inner {
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 0 clamp(1.75rem, 3.5vw, 2.5rem) 3.5rem;
+  }
+  .area__text {
+    max-width: 38ch;
+    color: var(--text-secondary);
+    transition: color 0.6s var(--ease-arch);
+  }
+  .area__media {
+    display: none;
+  }
+
+  .area.is-active .area__n {
+    color: var(--accent);
+  }
+  .area.is-active .area__title {
+    transform: translateX(8px);
+  }
+  .area.is-active .area__arrow {
+    opacity: 1;
+    transform: none;
+  }
+  .area.is-active .area__text {
+    color: var(--text-primary);
+  }
+
+  /* ——— Celular e tablet: acordeão por toque, foto revelada abaixo ——— */
+  @media (max-width: 63.99rem) {
+    .areas__side,
+    .areas__list {
+      grid-column: 1 / -1;
+    }
+    .areas__stage {
+      display: none;
+    }
+    .area__head {
+      grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+      padding: 1.6rem 0;
+    }
+    .area__title {
+      font-size: clamp(2rem, 9.5vw, 3rem);
+    }
+    .area__arrow {
+      display: none;
+    }
+    .area__toggle {
+      display: block;
+      position: relative;
+      width: 18px;
+      height: 18px;
+      align-self: center;
+    }
+    .area__toggle::before,
+    .area__toggle::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: currentColor;
+      transition: transform 0.6s var(--ease-arch);
+    }
+    .area__toggle::after {
+      transform: rotate(90deg);
+    }
+    .area.is-open .area__toggle::after {
+      transform: rotate(0deg);
+    }
+    .area.is-active .area__title {
+      transform: none;
+    }
+    .area__panel {
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.7s var(--ease-arch);
+    }
+    .area.is-open .area__panel {
+      grid-template-rows: 1fr;
+    }
+    .area__panel-inner {
+      padding: 0 0 0 2.5rem;
+    }
+    .area.is-open .area__panel-inner {
+      padding-bottom: 2rem;
+    }
+    .area__media {
+      display: block;
+      margin: 1.25rem 0 0 -2.5rem;
+    }
+    .area__frame {
+      aspect-ratio: 4 / 5;
+      overflow: hidden;
+      background: var(--border);
+      clip-path: inset(100% 0 0 0);
+      transition: clip-path 0.9s var(--ease-arch) 0.1s;
+    }
+    .area__frame :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.08);
+      transition: transform 1.2s var(--ease-arch) 0.1s;
+    }
+    .area.is-open .area__frame {
+      clip-path: inset(0 0 0 0);
+    }
+    .area.is-open .area__frame :global(img) {
+      transform: scale(1);
+    }
+    .area__media figcaption {
+      margin-top: 0.6rem;
+      font-size: 0.625rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .areas__shot,
+    .areas__caption span,
+    .area__panel,
+    .area__frame,
+    .area__frame :global(img),
+    .area__title {
+      transition: none !important;
+    }
+  }
+</style>
+
+<script>
+  const section = document.querySelector<HTMLElement>('[data-areas]');
+  if (section) {
+    const items = Array.from(section.querySelectorAll<HTMLElement>('[data-area]'));
+    const shots = Array.from(section.querySelectorAll<HTMLElement>('[data-shot]'));
+    const caps = Array.from(section.querySelectorAll<HTMLElement>('[data-cap]'));
+    const wide = window.matchMedia('(min-width: 64rem)');
+    let active = 0;
+
+    // Desktop: a foto lateral acompanha a área em foco (hover, foco ou clique).
+    const setActive = (i: number) => {
+      if (i === active) return;
+      shots[active]?.classList.remove('is-active');
+      shots[active]?.classList.add('is-leaving');
+      const prev = shots[active];
+      window.setTimeout(() => prev?.classList.remove('is-leaving'), 700);
+      shots[i]?.classList.add('is-active');
+      caps.forEach((c, k) => c.classList.toggle('is-active', k === i));
+      items.forEach((it, k) => it.classList.toggle('is-active', k === i));
+      active = i;
+    };
+
+    // Celular: acordeão; abrir uma área fecha as outras.
+    const setOpen = (i: number, open: boolean) => {
+      items.forEach((it, k) => {
+        const on = k === i ? open : false;
+        it.classList.toggle('is-open', on);
+        it.querySelector('.area__head')!.setAttribute('aria-expanded', String(on));
+      });
+      if (open) items.forEach((it, k) => it.classList.toggle('is-active', k === i));
+    };
+
+    // No desktop todas as descrições ficam visíveis.
+    const syncMode = () => {
+      if (wide.matches) {
+        items.forEach((it) => {
+          it.classList.add('is-open');
+          it.querySelector('.area__head')!.setAttribute('aria-expanded', 'true');
+        });
+        items.forEach((it, k) => it.classList.toggle('is-active', k === active));
+      } else {
+        const openIndex = Math.max(0, items.findIndex((it) => it.classList.contains('is-active')));
+        setOpen(openIndex, true);
+      }
+    };
+    syncMode();
+    wide.addEventListener('change', syncMode);
+
+    items.forEach((it, i) => {
+      const head = it.querySelector<HTMLButtonElement>('.area__head')!;
+      it.addEventListener('pointerenter', (e) => {
+        if (wide.matches && e.pointerType === 'mouse') setActive(i);
+      });
+      head.addEventListener('focus', () => {
+        if (wide.matches) setActive(i);
+      });
+      head.addEventListener('click', () => {
+        if (wide.matches) setActive(i);
+        else setOpen(i, !it.classList.contains('is-open'));
+      });
+    });
+  }
+</script>

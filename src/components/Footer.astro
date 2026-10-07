@@ -8,95 +8,171 @@ const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer">
-  <div class="wrap site-footer__grid">
-    <a href={home} class="site-footer__brand" aria-label="Lucas Matté Arquitetura, página inicial">
-      <Logo tone="dark" width={180} class="site-footer__logo" />
-    </a>
-
-    <nav aria-label="Rodapé">
-      <ul class="site-footer__list">
-        <li><a href={`${home}#projetos`}>Projetos</a></li>
-        <li><a href={`${home}#sobre`}>Sobre</a></li>
-        <li><a href={`${home}#atuacao`}>Atuação</a></li>
-        <li><a href={`${home}#contato`}>Contato</a></li>
-      </ul>
-    </nav>
-
-    <ul class="site-footer__list">
-      <li>
-        <a href={site.contact.instagram.url} target="_blank" rel="noopener">
-          Instagram<span class="visually-hidden"> (abre em nova aba)</span>
-        </a>
-      </li>
-      {
-        site.contact.whatsapp && (
+  <div class="wrap">
+    <div class="site-footer__cols">
+      <div class="site-footer__col">
+        <p class="site-footer__label">Índice</p>
+        <ul>
+          <li><a href={`${home}#projetos`}>Projetos</a></li>
+          <li><a href={`${home}#sobre`}>Escritório</a></li>
+          <li><a href={`${home}#atuacao`}>Atuação</a></li>
+          <li><a href={`${home}#contato`}>Contato</a></li>
+        </ul>
+      </div>
+      <div class="site-footer__col">
+        <p class="site-footer__label">Contato</p>
+        <ul>
+          {
+            site.contact.whatsapp && (
+              <li>
+                <a href={site.contact.whatsapp} target="_blank" rel="noopener">
+                  WhatsApp <span aria-hidden="true">↗</span>
+                  <span class="visually-hidden">(abre em nova aba)</span>
+                </a>
+              </li>
+            )
+          }
+          {site.contact.email && <li><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>}
+          {site.contact.phone && <li>{site.contact.phone}</li>}
+        </ul>
+      </div>
+      <div class="site-footer__col">
+        <p class="site-footer__label">Redes</p>
+        <ul>
           <li>
-            <a href={site.contact.whatsapp} target="_blank" rel="noopener">
-              WhatsApp<span class="visually-hidden"> (abre em nova aba)</span>
+            <a href={site.contact.instagram.url} target="_blank" rel="noopener">
+              Instagram <span aria-hidden="true">↗</span>
+              <span class="visually-hidden">(abre em nova aba)</span>
             </a>
           </li>
+        </ul>
+      </div>
+      {
+        site.contact.address && (
+          <div class="site-footer__col">
+            <p class="site-footer__label">Localização</p>
+            <p>{site.contact.address}</p>
+          </div>
         )
       }
-      {site.contact.email && <li><a href={`mailto:${site.contact.email}`}>{site.contact.email}</a></li>}
-    </ul>
-  </div>
+      <div class="site-footer__col site-footer__col--areas">
+        <p class="site-footer__label">Atuação</p>
+        <p>{site.areas}</p>
+      </div>
+    </div>
 
-  <div class="wrap site-footer__base">
-    <p>© <span data-year>{year}</span> {site.name}</p>
+    <a href={home} class="site-footer__mark" aria-label="Lucas Matté Arquitetura, página inicial">
+      <Logo tone="light" width={1100} class="site-footer__logo" />
+    </a>
+
+    <div class="site-footer__base">
+      <p>© <span data-year>{year}</span> {site.name}</p>
+      <a href="#conteudo" class="site-footer__top">Voltar ao topo <span aria-hidden="true">↑</span></a>
+    </div>
   </div>
 </footer>
 
 <style>
   .site-footer {
-    background: var(--surface);
-    border-top: 1px solid var(--border);
-    padding-top: clamp(3rem, 6vw, 4.5rem);
+    background: var(--primary);
+    color: var(--on-primary);
+    padding-top: clamp(3rem, 7vw, 6rem);
     font-size: 0.9375rem;
   }
-  .site-footer__grid {
+  .site-footer__cols {
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
-    gap: 2.5rem;
-    align-items: start;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2.5rem clamp(1rem, 2vw, 2rem);
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(243 239 231 / 0.14);
   }
-  .site-footer__brand {
-    display: inline-block;
-    width: clamp(140px, 14vw, 180px);
+  .site-footer__label {
+    margin-bottom: 1rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--on-dark-muted);
   }
-  .site-footer__brand :global(.site-footer__logo) {
-    width: 100%;
-  }
-  .site-footer__list {
+  .site-footer__col ul {
     margin: 0;
     padding: 0;
     list-style: none;
   }
-  .site-footer__list a {
+  .site-footer__col p:not(.site-footer__label) {
+    color: rgb(243 239 231 / 0.8);
+    max-width: 22ch;
+  }
+  .site-footer__col a {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    min-height: 2.5rem;
+    gap: 0.4rem;
+    min-height: 2.25rem;
     text-decoration: none;
-    color: var(--text-secondary);
-    transition: color 0.2s;
+    color: rgb(243 239 231 / 0.85);
+    transition: color 0.4s;
   }
-  .site-footer__list a:hover {
-    color: var(--text-primary);
-    text-decoration: underline;
-    text-underline-offset: 0.3em;
+  .site-footer__col a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.35rem;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.7s var(--ease-arch);
   }
+  .site-footer__col a:hover {
+    color: var(--on-primary);
+  }
+  .site-footer__col a:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  .site-footer__mark {
+    display: block;
+    margin-top: clamp(4rem, 10vw, 9rem);
+  }
+  .site-footer__mark :global(.site-footer__logo) {
+    width: 100%;
+    max-width: 68rem;
+  }
+
   .site-footer__base {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
     margin-top: clamp(2.5rem, 5vw, 4rem);
     padding-block: 1.5rem;
-    border-top: 1px solid var(--border);
-    color: var(--text-secondary);
-    font-size: var(--step--1);
+    border-top: 1px solid rgb(243 239 231 / 0.14);
+    font-size: 0.75rem;
+    letter-spacing: 0.06em;
+    color: var(--on-dark-muted);
   }
-  @media (max-width: 40rem) {
-    .site-footer__grid {
-      grid-template-columns: 1fr 1fr;
-    }
-    .site-footer__brand {
-      grid-column: 1 / -1;
+  .site-footer__top {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    margin-block: -0.75rem;
+    color: inherit;
+    text-decoration: none;
+  }
+  .site-footer__top span {
+    transition: transform 0.6s var(--ease-arch);
+  }
+  .site-footer__top:hover span {
+    transform: translateY(-4px);
+  }
+
+  @media (max-width: 47.99rem) {
+    .site-footer__cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 </style>

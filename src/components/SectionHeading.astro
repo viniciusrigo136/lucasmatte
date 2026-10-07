@@ -1,0 +1,52 @@
+---
+interface Props {
+  n: string;
+  label: string;
+  /** Título dividido em linhas (cada linha sobe de dentro da própria máscara). */
+  lines?: string[];
+  id?: string;
+  tone?: 'dark' | 'light';
+  class?: string;
+}
+
+const { n, label, lines, id, tone = 'dark', class: className } = Astro.props;
+---
+
+<div class:list={['sh', `sh--${tone}`, className]}>
+  <p class="marker sh__marker" data-reveal>
+    <span class="marker__n">{n}</span>
+    <span class="marker__rule sh__rule" aria-hidden="true"></span>
+    <span>{label}</span>
+  </p>
+  {
+    lines && (
+      <h2 id={id} class="sh__title" data-reveal-lines>
+        {lines.map((l) => (
+          <span class="line">
+            <span class="line__inner">{l}</span>
+          </span>
+        ))}
+      </h2>
+    )
+  }
+</div>
+
+<style>
+  .sh {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+  .sh__title {
+    font-size: var(--step-4);
+    line-height: 1;
+    letter-spacing: -0.03em;
+    text-wrap: initial;
+  }
+  .sh--light .marker,
+  .sh--light .marker__n {
+    color: var(--on-dark-muted);
+  }
+  .sh--light .sh__title {
+    color: var(--on-primary);
+  }
+</style>

@@ -8,11 +8,13 @@ interface Props {
   title?: string;
   description?: string;
   ogImage?: string;
-  /** Header transparente sobre a hero. */
+  /** Header claro sobre uma foto no topo da página. */
   overlayHeader?: boolean;
+  /** Preloader curto (apenas na primeira visita da sessão). */
+  preloader?: boolean;
 }
 
-const { title = site.title, description = site.description, ogImage, overlayHeader = false } = Astro.props;
+const { title = site.title, description = site.description, ogImage, overlayHeader = false, preloader = false } = Astro.props;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : ogImage;
 ---
@@ -21,7 +23,7 @@ const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : o
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#302D29" />
@@ -33,14 +35,47 @@ const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : o
     <meta property="og:description" content={description} />
     {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
     <meta name="twitter:card" content="summary_large_image" />
-    <script is:inline>
-      document.documentElement.classList.add('js');
+    <script is:inline define:vars={{ preloader }}>
+      const root = document.documentElement;
+      root.classList.add('js');
+      // Chegada por transição entre páginas: a foto já vem expandida, sem animação de entrada.
+      window.addEventListener('pagereveal', (e) => {
+        if (e.viewTransition) root.classList.add('vt-arrival');
+      });
+      // Preloader: só na primeira visita da sessão e sem preferência por movimento reduzido.
+      try {
+        const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (preloader && !reduce && !sessionStorage.getItem('lm-seen')) {
+          root.classList.add('is-preloading');
+          sessionStorage.setItem('lm-seen', '1');
+          setTimeout(() => {
+            root.classList.add('is-preloaded');
+            window.dispatchEvent(new Event('lm:ready'));
+          }, 1050);
+          setTimeout(() => root.classList.remove('is-preloading', 'is-preloaded'), 1900);
+        }
+      } catch (e) {}
       // Garantia: se a animação não rodar, o conteúdo aparece mesmo assim.
-      setTimeout(() => { if (!window.__lmMotion) document.documentElement.classList.add('motion-done'); }, 2500);
+      setTimeout(() => {
+        if (!window.__lmMotion) root.classList.add('motion-done');
+      }, 2500);
     </script>
     <slot name="head" />
   </head>
   <body>
+    {
+      preloader && (
+        <div class="preloader" aria-hidden="true">
+          <div class="preloader__inner">
+            <span class="preloader__mark">
+              <span class="preloader__word">Lucas Matté</span>
+              <span class="preloader__sub">Arquitetura</span>
+            </span>
+            <span class="preloader__line" />
+          </div>
+        </div>
+      )
+    }
     <a href="#conteudo" class="skip-link">Pular para o conteúdo</a>
     <Header overlay={overlayHeader} />
     <main id="conteudo">
@@ -48,29 +83,100 @@ const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : o
     </main>
     <Footer />
     <script>
-      import { animate, inView } from 'motion';
-
-      (window as unknown as { __lmMotion: boolean }).__lmMotion = true;
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (!reduce) {
-        inView(
-          '[data-reveal]',
-          (el) => {
-            animate(el, { opacity: [0, 1], transform: ['translateY(18px)', 'translateY(0)'] }, {
-              duration: 0.7,
-              ease: [0.22, 1, 0.36, 1],
-            });
-          },
-          { amount: 0.2 },
-        );
-      }
+      import { initMotion, initCursor } from '../scripts/motion';
+      import { initSmoothScroll } from '../scripts/smooth-scroll';
+      initSmoothScroll();
+      initMotion();
+      initCursor();
     </script>
   </body>
 </html>
 
 <style is:global>
-  .motion-done [data-reveal] {
-    opacity: 1 !important;
-    transform: none !important;
+  /* ——— Preloader (≈1s, primeira visita) ——— */
+  .preloader {
+    display: none;
+  }
+  html.is-preloading .preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    background: var(--background);
+    color: var(--text-primary);
+  }
+  html.is-preloaded .preloader {
+    transform: translateY(-100%);
+    transition: transform 0.85s cubic-bezier(0.7, 0, 0.2, 1);
+  }
+  .preloader__inner {
+    display: grid;
+    gap: 1.1rem;
+    justify-items: center;
+  }
+  .preloader__mark {
+    display: grid;
+    justify-items: center;
+    overflow: hidden;
+  }
+  .preloader__word {
+    font-family: var(--font-serif);
+    font-size: clamp(1.75rem, 6vw, 2.75rem);
+    letter-spacing: -0.01em;
+    animation: pre-up 0.7s var(--ease-arch) both;
+  }
+  .preloader__sub {
+    font-size: 0.6875rem;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    animation: pre-up 0.7s var(--ease-arch) 0.08s both;
+  }
+  .preloader__line {
+    width: min(14rem, 50vw);
+    height: 1px;
+    background: var(--text-primary);
+    transform-origin: left;
+    animation: pre-line 0.8s var(--ease-arch) 0.15s both;
+  }
+  @keyframes pre-up {
+    from {
+      transform: translateY(110%);
+    }
+  }
+  @keyframes pre-line {
+    from {
+      transform: scaleX(0);
+    }
+  }
+
+  /* ——— Cursor contextual (apenas mouse) ——— */
+  .view-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 50%;
+    background: var(--on-primary);
+    color: var(--text-primary);
+    font: 500 0.625rem/1.25 var(--font-sans);
+    letter-spacing: 0.14em;
+    text-align: center;
+    text-transform: uppercase;
+    pointer-events: none;
+    opacity: 0;
+    scale: 0.4;
+    transition:
+      opacity 0.4s var(--ease-arch),
+      scale 0.6s var(--ease-arch);
+  }
+  .view-cursor.is-on {
+    opacity: 1;
+    scale: 1;
   }
 </style>

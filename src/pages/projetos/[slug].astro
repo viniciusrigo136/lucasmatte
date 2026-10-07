@@ -1,7 +1,7 @@
 ---
 import { Picture, getImage } from 'astro:assets';
 import Base from '../../layouts/Base.astro';
-import { projetos, projectImage, projectMeta, type ProjectData } from '../../data/projetos';
+import { projetos, projectImage, type ProjectData } from '../../data/projetos';
 import { site } from '../../data/site';
 
 export function getStaticPaths() {
@@ -15,87 +15,160 @@ interface Props {
 const { project } = Astro.props;
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-const images = await Promise.all(
+const all = await Promise.all(
   project.images.map(async (img) => {
     const src = projectImage(project.slug, img.file);
     const large = await getImage({ src, width: Math.min(src.width, 2400), format: 'webp', quality: 80 });
     return { ...img, src, landscape: src.width > src.height, largeSrc: large.src };
   }),
 );
+const cover = all.find((i) => i.file === project.cover) ?? all[0];
+const gallery = all.filter((i) => i !== cover);
 
-// Linhas da galeria: paisagem ocupa a linha; retratos consecutivos formam pares.
-type Row = { kind: 'full' | 'pair' | 'single'; items: typeof images };
-const rows: Row[] = [];
-for (let i = 0; i < images.length; i++) {
-  const cur = images[i];
-  if (cur.landscape) rows.push({ kind: 'full', items: [cur] });
-  else if (images[i + 1] && !images[i + 1].landscape) {
-    rows.push({ kind: 'pair', items: [cur, images[i + 1]] });
+// Ritmo de revista: paisagens alternam entre sangrada e deslocada; retratos formam
+// pares desencontrados ou aparecem sozinhos, estreitos e fora do eixo.
+type Block =
+  | { kind: 'bleed' | 'wide'; items: typeof gallery }
+  | { kind: 'pair'; items: typeof gallery }
+  | { kind: 'narrow'; items: typeof gallery };
+const blocks: Block[] = [];
+let landscapeCount = 0;
+for (let i = 0; i < gallery.length; i++) {
+  const cur = gallery[i];
+  if (cur.landscape) {
+    blocks.push({ kind: landscapeCount++ % 2 === 0 ? 'wide' : 'bleed', items: [cur] });
+  } else if (gallery[i + 1] && !gallery[i + 1].landscape) {
+    blocks.push({ kind: 'pair', items: [cur, gallery[i + 1]] });
     i++;
-  } else rows.push({ kind: 'single', items: [cur] });
+  } else {
+    blocks.push({ kind: 'narrow', items: [cur] });
+  }
 }
-let index = 0;
-const rowsIndexed = rows.map((r) => ({ ...r, items: r.items.map((it) => ({ ...it, i: index++ })) }));
+let idx = 0;
+const blocksIndexed = blocks.map((b, bi) => ({
+  ...b,
+  flip: bi % 2 === 1,
+  items: b.items.map((it) => ({ ...it, i: idx++ })),
+}));
 
-const cover = images.find((i) => i.file === project.cover) ?? images[0];
 const og = await getImage({ src: cover.src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+const heroWide = cover.landscape;
 
 const pos = projetos.findIndex((p) => p.slug === project.slug);
+const number = String(pos + 1).padStart(2, '0');
 const next = projetos[(pos + 1) % projetos.length];
+const nextCover = projectImage(next.slug, next.cover);
 const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
+// Agrupa palavras curtas na mesma linha (ex.: "Casa de / campo").
+const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
+  const last = lines[lines.length - 1];
+  if (last && (last + ' ' + w).length <= 9) lines[lines.length - 1] = last + ' ' + w;
+  else lines.push(w);
+  return lines;
+}, []);
 ---
 
-<Base title={`${project.title} | ${site.name}`} description={`${project.title}: ${project.summary}`} ogImage={og.src}>
-  <article class="project">
-    <header class="wrap project__head">
-      <a href={`${base}/#projetos`} class="text-link project__back">Voltar aos projetos</a>
-      <h1 class="project__title">{project.title}</h1>
-      <dl class="project__facts">
-        <div>
-          <dt>Categoria</dt>
-          <dd>{project.category}</dd>
+<Base title={`${project.title} | ${site.name}`} description={`${project.title}: ${project.summary}`} ogImage={og.src} overlayHeader>
+  <article class="case">
+    <!-- 1–3. Hero, nome e ficha -->
+    <header class="case-hero">
+      <div class="case-hero__frame">
+        <div class="case-hero__drift" data-drift="12">
+        <Picture
+          src={cover.src}
+          alt={cover.alt}
+          widths={[800, 1280, 1920, 2400]}
+          sizes="100vw"
+          formats={['avif', 'webp']}
+          quality={74}
+          loading="eager"
+          fetchpriority="high"
+          class:list={['case-hero__img', { 'is-tall': !heroWide }]}
+          style={`view-transition-name: foto-${project.slug}`}
+        />
         </div>
-        {
-          project.location && (
-            <div>
-              <dt>Cidade</dt>
-              <dd>{project.location}</dd>
-            </div>
-          )
-        }
-        <div>
-          <dt>Fotografias</dt>
-          <dd>{images.length}</dd>
-        </div>
-      </dl>
-      <div class="project__desc">
-        {project.description.map((para) => <p>{para}</p>)}
+        <div class="case-hero__scrim" aria-hidden="true"></div>
+      </div>
+
+      <div class="case-hero__top wrap">
+        <a href={`${base}/#projetos`} class="case-hero__back">
+          <span aria-hidden="true">←</span> Projetos
+        </a>
+        <p class="case-hero__index">{number} / {String(projetos.length).padStart(2, '0')}</p>
+      </div>
+
+      <div class="case-hero__title-wrap wrap">
+        <h1 class="case-hero__title">
+          {
+            titleWords.map((w, i) => (
+              <span class="line">
+                <span class="line__inner case-hero__line" style={`--i: ${i}`}>{w}</span>
+              </span>
+            ))
+          }
+        </h1>
+        <dl class="case-hero__meta">
+          <div>
+            <dt>Categoria</dt>
+            <dd>{project.category}</dd>
+          </div>
+          {
+            project.location && (
+              <div>
+                <dt>Cidade</dt>
+                <dd>{project.location}</dd>
+              </div>
+            )
+          }
+          <div>
+            <dt>Fotografias</dt>
+            <dd>{String(all.length).padStart(2, '0')}</dd>
+          </div>
+        </dl>
       </div>
     </header>
 
-    <section class="wrap gallery" aria-label={`Galeria de fotos: ${project.title}`}>
+    <!-- 5. Descrição -->
+    <section class="case-intro wrap" aria-label="Sobre o projeto">
+      <p class="marker case-intro__marker" data-reveal>
+        <span class="marker__n">{number}</span>
+        <span class="marker__rule" aria-hidden="true"></span>
+        <span>Sobre o projeto</span>
+      </p>
+      <p class="case-intro__summary" data-reveal>{project.summary}</p>
+      <div class="case-intro__body">
+        {project.description.map((para, i) => <p data-reveal data-delay={String(i * 0.08)}>{para}</p>)}
+      </div>
+    </section>
+
+    <!-- 6. Galeria editorial -->
+    <section class="gallery" aria-label={`Galeria de fotos: ${project.title}`}>
       {
-        rowsIndexed.map((row) => (
-          <div class:list={['gallery__row', `gallery__row--${row.kind}`]}>
-            {row.items.map((img) => (
+        blocksIndexed.map((b) => (
+          <div class:list={['g', `g--${b.kind}`, { 'g--flip': b.flip }]}>
+            {b.items.map((img) => (
               <button
                 type="button"
-                class="gallery__item"
+                class="g__item"
                 data-lightbox-index={img.i}
                 data-full={img.largeSrc}
                 data-alt={img.alt}
-                aria-label={`Ampliar foto ${img.i + 1} de ${images.length}: ${img.alt}`}
+                data-cursor="Ampliar"
+                aria-label={`Ampliar foto ${img.i + 1} de ${gallery.length}: ${img.alt}`}
               >
-                <Picture
-                  src={img.src}
-                  alt={img.alt}
-                  widths={row.kind === 'full' ? [640, 960, 1400, 1920, 2400] : [420, 640, 900, 1200]}
-                  sizes={row.kind === 'full' ? '(min-width: 90rem) 1248px, 100vw' : '(min-width: 48rem) 45vw, 100vw'}
-                  formats={['avif', 'webp']}
-                  quality={72}
-                  loading={img.i === 0 ? 'eager' : 'lazy'}
-                  fetchpriority={img.i === 0 ? 'high' : undefined}
-                />
+                <span class="g__frame reveal-img" data-reveal-img>
+                  <span class="g__scale">
+                    <Picture
+                      src={img.src}
+                      alt={img.alt}
+                      widths={b.kind === 'bleed' || b.kind === 'wide' ? [640, 960, 1400, 1920, 2400] : [420, 640, 900, 1200]}
+                      sizes={b.kind === 'bleed' ? '100vw' : b.kind === 'wide' ? '(min-width: 64rem) 75vw, 100vw' : '(min-width: 64rem) 40vw, 100vw'}
+                      formats={['avif', 'webp']}
+                      quality={72}
+                    />
+                  </span>
+                </span>
+                <span class="g__cap">{String(img.i + 1).padStart(2, '0')}</span>
               </button>
             ))}
           </div>
@@ -103,17 +176,43 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
       }
     </section>
 
-    <section class="project__cta" aria-labelledby="cta-title">
-      <div class="wrap project__cta-grid">
-        <h2 id="cta-title" class="project__cta-title">Tem um espaço em mente?</h2>
-        <div class="project__cta-actions">
-          <a href={contactHref} class="btn btn--light" target="_blank" rel="noopener">
-            Conversar pelo WhatsApp<span class="visually-hidden"> (abre em nova aba)</span>
-          </a>
-          <a href={`${base}/projetos/${next.slug}/`} class="btn btn--ghost-light">Próximo projeto: {next.title}</a>
-        </div>
-      </div>
+    <!-- 7. Detalhes + contato -->
+    <section class="case-details wrap" aria-labelledby="detalhes-title">
+      <h2 id="detalhes-title" class="case-details__title" data-reveal-lines>
+        <span class="line"><span class="line__inner">Tem um espaço</span></span>
+        <span class="line"><span class="line__inner">em mente?</span></span>
+      </h2>
+      <dl class="case-details__list" data-reveal>
+        <div><dt>Projeto</dt><dd>{project.title}</dd></div>
+        <div><dt>Categoria</dt><dd>{project.category}</dd></div>
+        {project.location && <div><dt>Cidade</dt><dd>{project.location}</dd></div>}
+        <div><dt>Fotografias</dt><dd>{all.length}</dd></div>
+      </dl>
+      <a href={contactHref} class="case-details__link" target="_blank" rel="noopener" data-reveal>
+        Iniciar conversa <span aria-hidden="true">↗</span>
+        <span class="visually-hidden">pelo WhatsApp (abre em nova aba)</span>
+      </a>
     </section>
+
+    <!-- 8. Próximo projeto -->
+    <a href={`${base}/projetos/${next.slug}/`} class="next" data-cursor="Abrir">
+      <span class="next__frame">
+        <Picture
+          src={nextCover}
+          alt=""
+          widths={[800, 1280, 1920]}
+          sizes="100vw"
+          formats={['avif', 'webp']}
+          quality={68}
+          class="next__img"
+        />
+      </span>
+      <span class="next__content wrap">
+        <span class="next__label">Próximo projeto</span>
+        <span class="next__title">{next.title} <span class="next__arrow" aria-hidden="true">→</span></span>
+        <span class="next__meta">{next.category}{next.location ? ` / ${next.location}` : ''}</span>
+      </span>
+    </a>
   </article>
 
   <dialog class="lightbox" aria-label="Visualização ampliada da foto">
@@ -126,133 +225,408 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
       <figcaption class="lightbox__caption"></figcaption>
     </figure>
     <div class="lightbox__nav">
-      <button type="button" class="lightbox__btn" data-prev>Anterior</button>
-      <button type="button" class="lightbox__btn" data-next>Próxima</button>
+      <button type="button" class="lightbox__btn" data-prev><span aria-hidden="true">←</span> Anterior</button>
+      <button type="button" class="lightbox__btn" data-next>Próxima <span aria-hidden="true">→</span></button>
     </div>
   </dialog>
 </Base>
 
 <style>
-  .project__head {
+  /* ——— Hero do case ——— */
+  .case-hero {
+    position: relative;
+    height: clamp(36rem, 100svh, 70rem);
     display: grid;
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    grid-template-areas:
-      'back back'
-      'title facts'
-      'desc desc';
-    gap: 1.5rem clamp(2rem, 6vw, 6rem);
-    padding-top: calc(var(--header-h) + clamp(2rem, 5vw, 4rem));
-    padding-bottom: clamp(2.5rem, 5vw, 4rem);
+    grid-template-rows: auto 1fr auto;
+    padding-top: var(--header-h);
+    color: var(--on-primary);
+    isolation: isolate;
   }
-  .project__back {
-    grid-area: back;
-    justify-self: start;
-    font-size: 0.9375rem;
-  }
-  .project__title {
-    grid-area: title;
-    font-size: var(--step-4);
-    line-height: 1.04;
-  }
-  .project__facts {
-    grid-area: facts;
-    align-self: end;
-    display: grid;
-    margin: 0;
-    border-top: 1px solid var(--text-primary);
-  }
-  .project__facts div {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-block: 0.75rem;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.9375rem;
-  }
-  .project__facts dt {
-    color: var(--text-secondary);
-  }
-  .project__facts dd {
-    margin: 0;
-    font-weight: 500;
-  }
-  .project__desc {
-    grid-area: desc;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.5rem clamp(2rem, 6vw, 6rem);
-    padding-top: clamp(1rem, 3vw, 2rem);
-    color: var(--text-secondary);
-    font-size: var(--step-1);
-  }
-  .project__desc p {
-    max-width: 44ch;
-  }
-
-  .gallery {
-    display: grid;
-    gap: clamp(0.75rem, 2vw, 1.5rem);
-    padding-bottom: clamp(4rem, 8vw, 7rem);
-  }
-  .gallery__row {
-    display: grid;
-    gap: clamp(0.75rem, 2vw, 1.5rem);
-  }
-  .gallery__row--pair {
-    grid-template-columns: 1fr 1fr;
-  }
-  .gallery__row--single {
-    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  }
-  .gallery__item {
-    display: block;
-    width: 100%;
-    padding: 0;
-    border: 0;
-    background: var(--border);
-    cursor: zoom-in;
+  .case-hero__frame {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
     overflow: hidden;
+    background: var(--ink-deep);
   }
-  .gallery__item:focus-visible {
-    outline: 2px solid var(--text-primary);
-    outline-offset: 4px;
+  .case-hero__drift {
+    height: 114%;
+    margin-top: -7%;
+    will-change: transform;
   }
-  .gallery__item :global(img) {
+  .case-hero__frame :global(picture),
+  .case-hero__frame :global(img) {
     width: 100%;
-    height: auto;
-    transition: transform 0.8s var(--ease-out);
-  }
-  .gallery__row--pair .gallery__item :global(img) {
-    aspect-ratio: 3 / 4;
+    height: 100%;
     object-fit: cover;
   }
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .gallery__item:hover :global(img) {
-      transform: scale(1.02);
+  .case-hero__frame :global(img.is-tall) {
+    object-position: 50% 35%;
+  }
+  .case-hero__scrim {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to top, rgb(20 18 16 / 0.72), rgb(20 18 16 / 0) 52%),
+      linear-gradient(to bottom, rgb(20 18 16 / 0.55), rgb(20 18 16 / 0) 30%);
+  }
+  .case-hero__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.25rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .case-hero__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    text-decoration: none;
+  }
+  .case-hero__back span {
+    transition: transform 0.6s var(--ease-arch);
+  }
+  .case-hero__back:hover span {
+    transform: translateX(-4px);
+  }
+  .case-hero__index {
+    color: rgb(243 239 231 / 0.75);
+  }
+  .case-hero__title-wrap {
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 2rem;
+    padding-bottom: clamp(2rem, 6svh, 4rem);
+  }
+  .case-hero__title {
+    font-size: clamp(3.25rem, 1rem + 9vw, 10.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.04em;
+    text-wrap: initial;
+  }
+  .case-hero__title .line:nth-child(2n) {
+    padding-left: 0.5em;
+  }
+  .case-hero__meta {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    min-width: 13rem;
+    font-size: 0.8125rem;
+  }
+  .case-hero__meta div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgb(243 239 231 / 0.3);
+  }
+  .case-hero__meta dt {
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(243 239 231 / 0.7);
+  }
+  .case-hero__meta dd {
+    margin: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .case-hero__frame {
+      animation: frame-in 1.5s var(--ease-arch) 0.1s both;
+    }
+    .case-hero__line {
+      animation: line-in 1.2s var(--ease-arch) calc(0.45s + var(--i) * 0.09s) both;
+    }
+    .case-hero__meta,
+    .case-hero__top {
+      animation: fade-in 1s var(--ease-arch) 1s both;
+    }
+  }
+  :global(.vt-arrival) .case-hero__frame {
+    animation: none;
+  }
+  @keyframes frame-in {
+    from {
+      clip-path: inset(100% 0 0 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  @keyframes line-in {
+    from {
+      transform: translateY(110%);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
     }
   }
 
-  .project__cta {
-    background: var(--primary);
-    color: var(--on-primary);
-    padding-block: clamp(4rem, 9vw, 7rem);
+  /* ——— Descrição ——— */
+  .case-intro {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(1rem, 2vw, 2rem);
+    row-gap: 2.5rem;
+    padding-block: clamp(5rem, 12vw, 10rem);
   }
-  .project__cta-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: end;
-    gap: 2rem;
+  .case-intro__marker {
+    grid-column: 1 / span 3;
+    align-self: start;
+    padding-top: 0.9rem;
   }
-  .project__cta-title {
-    font-size: var(--step-3);
+  .case-intro__summary {
+    grid-column: 4 / span 8;
+    font-family: var(--font-serif);
+    font-size: clamp(1.75rem, 1rem + 2.8vw, 3.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
-  .project__cta-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+  .case-intro__body {
+    grid-column: 7 / span 5;
+    display: grid;
+    gap: 1.25rem;
+    color: var(--text-secondary);
   }
 
+  /* ——— Galeria editorial ——— */
+  .gallery {
+    display: grid;
+    gap: clamp(4rem, 10vw, 9rem);
+    padding-bottom: clamp(5rem, 12vw, 10rem);
+  }
+  .g {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(1rem, 2vw, 2rem);
+    max-width: var(--max);
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+  .g__item {
+    display: block;
+    position: relative;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    text-align: left;
+    cursor: zoom-in;
+  }
+  .g__item:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 4px;
+  }
+  .g__frame {
+    display: block;
+    background: var(--border);
+  }
+  .g__scale {
+    display: block;
+  }
+  .g__frame :global(img) {
+    width: 100%;
+    height: auto;
+    transition: transform 1.2s var(--ease-arch);
+  }
+  .g__cap {
+    display: block;
+    margin-top: 0.75rem;
+    font-family: var(--font-serif);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .g__item:hover .g__frame :global(img) {
+      transform: scale(1.03);
+    }
+  }
+
+  .g--bleed {
+    max-width: none;
+    padding-inline: 0;
+  }
+  .g--bleed .g__item {
+    grid-column: 1 / -1;
+  }
+  .g--bleed .g__frame :global(img) {
+    max-height: 92svh;
+    object-fit: cover;
+  }
+  .g--bleed .g__cap {
+    padding-inline: var(--gutter);
+  }
+  .g--wide .g__item {
+    grid-column: 1 / span 9;
+  }
+  .g--wide.g--flip .g__item {
+    grid-column: 4 / span 9;
+  }
+  .g--pair .g__item:first-child {
+    grid-column: 1 / span 5;
+  }
+  .g--pair .g__item:last-child {
+    grid-column: 7 / span 5;
+    margin-top: clamp(4rem, 14vw, 12rem);
+  }
+  .g--pair.g--flip .g__item:first-child {
+    grid-column: 2 / span 5;
+    margin-top: clamp(4rem, 14vw, 12rem);
+  }
+  .g--pair.g--flip .g__item:last-child {
+    grid-column: 8 / span 5;
+    margin-top: 0;
+  }
+  .g--narrow .g__item {
+    grid-column: 8 / span 4;
+  }
+  .g--narrow.g--flip .g__item {
+    grid-column: 3 / span 4;
+  }
+
+  /* ——— Detalhes + contato ——— */
+  .case-details {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(1rem, 2vw, 2rem);
+    row-gap: 2.5rem;
+    align-items: end;
+    padding-block: clamp(3rem, 8vw, 7rem) clamp(5rem, 12vw, 10rem);
+    border-top: 1px solid var(--border);
+  }
+  .case-details__title {
+    grid-column: 1 / span 7;
+    font-size: clamp(2.5rem, 1rem + 5vw, 6.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+  }
+  .case-details__list {
+    grid-column: 9 / span 4;
+    margin: 0;
+    font-size: 0.9375rem;
+  }
+  .case-details__list div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.7rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .case-details__list dt {
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+  }
+  .case-details__list dd {
+    margin: 0;
+  }
+  .case-details__link {
+    grid-column: 9 / span 4;
+    justify-self: start;
+    display: inline-flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    font-family: var(--font-serif);
+    font-size: clamp(1.5rem, 1rem + 1.4vw, 2.25rem);
+    text-decoration: none;
+    padding-bottom: 0.4rem;
+    background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+    transition: background-size 0.8s var(--ease-arch);
+  }
+  .case-details__link span {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 0.7em;
+    transition: transform 0.8s var(--ease-arch);
+  }
+  .case-details__link:hover {
+    background-size: 30% 1px;
+  }
+  .case-details__link:hover span:first-of-type {
+    transform: translate(8px, -6px);
+  }
+
+  /* ——— Próximo projeto ——— */
+  .next {
+    position: relative;
+    display: grid;
+    align-items: end;
+    min-height: min(90svh, 52rem);
+    color: var(--on-primary);
+    text-decoration: none;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .next__frame {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--ink-deep);
+  }
+  .next__frame :global(picture),
+  .next__frame :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .next__frame :global(img) {
+    opacity: 0.62;
+    transition:
+      transform 1.4s var(--ease-arch),
+      opacity 1s var(--ease-arch);
+  }
+  .next__content {
+    display: grid;
+    gap: 1rem;
+    padding-block: clamp(3rem, 8vw, 6rem);
+  }
+  .next__label,
+  .next__meta {
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgb(243 239 231 / 0.78);
+  }
+  .next__title {
+    font-family: var(--font-serif);
+    font-size: clamp(3rem, 1rem + 8vw, 9rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    transition: transform 0.9s var(--ease-arch);
+  }
+  .next__arrow {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 0.5em;
+    vertical-align: middle;
+    transition: transform 0.9s var(--ease-arch);
+  }
+  .next:hover .next__frame :global(img) {
+    transform: scale(1.04);
+    opacity: 0.72;
+  }
+  .next:hover .next__title {
+    transform: translateX(10px);
+  }
+  .next:hover .next__arrow {
+    transform: translateX(10px);
+  }
+  .next:focus-visible {
+    outline-offset: -6px;
+  }
+
+  /* ——— Lightbox ——— */
   .lightbox {
     width: 100vw;
     height: 100dvh;
@@ -261,7 +635,7 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
     margin: 0;
     padding: 0;
     border: 0;
-    background: rgb(24 22 20 / 0.97);
+    background: rgb(24 22 20 / 0.98);
     color: var(--on-primary);
   }
   .lightbox[open] {
@@ -280,7 +654,9 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
     padding: 0.75rem var(--gutter);
   }
   .lightbox__count {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
     color: var(--on-dark-muted);
   }
   .lightbox__figure {
@@ -305,34 +681,71 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
     color: var(--on-dark-muted);
   }
   .lightbox__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
     min-height: 2.75rem;
     min-width: 2.75rem;
     padding: 0.5rem 1rem;
-    border: 1px solid rgb(243 239 231 / 0.4);
-    border-radius: 2px;
+    border: 1px solid rgb(243 239 231 / 0.35);
+    border-radius: 0;
     background: transparent;
     color: var(--on-primary);
-    font: 500 0.875rem/1 var(--font-sans);
+    font: 500 0.8125rem/1 var(--font-sans);
+    letter-spacing: 0.04em;
     cursor: pointer;
+    transition:
+      background-color 0.4s,
+      border-color 0.4s;
   }
   .lightbox__btn:hover {
-    background: rgb(243 239 231 / 0.12);
+    background: rgb(243 239 231 / 0.1);
     border-color: var(--on-primary);
   }
 
-  @media (max-width: 47.99rem) {
-    .project__head {
-      grid-template-columns: 1fr;
-      grid-template-areas: 'back' 'title' 'facts' 'desc';
+  /* ——— Telas médias e celular ——— */
+  @media (max-width: 63.99rem) {
+    .case-hero {
+      height: auto;
+      min-height: 88svh;
     }
-    .project__desc {
+
+    .case-hero__title-wrap {
       grid-template-columns: 1fr;
     }
-    .gallery__row--single {
-      grid-template-columns: 1fr;
+    .case-hero__meta {
+      min-width: 0;
+      max-width: 22rem;
     }
-    .project__cta-actions .btn {
-      flex: 1 1 14rem;
+    .case-intro__marker,
+    .case-intro__summary,
+    .case-intro__body,
+    .case-details__title,
+    .case-details__list,
+    .case-details__link {
+      grid-column: 1 / -1;
+    }
+    .g {
+      padding-inline: 0;
+    }
+    .g .g__item {
+      grid-column: 1 / -1 !important;
+      margin-top: 0 !important;
+    }
+    .g--pair {
+      row-gap: clamp(1rem, 4vw, 2rem);
+    }
+    .g--pair .g__item:last-child,
+    .g--pair.g--flip .g__item:first-child {
+      width: 82%;
+      justify-self: end;
+    }
+    .g--narrow .g__item {
+      width: 78%;
+      justify-self: center;
+    }
+    .g__cap {
+      padding-inline: var(--gutter);
     }
   }
 </style>
@@ -362,6 +775,7 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
         trigger = item;
         show(i);
         dialog.showModal();
+        window.dispatchEvent(new CustomEvent('lm:lock'));
         dialog.querySelector<HTMLButtonElement>('[data-close]')!.focus();
       }),
     );
@@ -373,12 +787,12 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
       if (e.key === 'ArrowLeft') show(current - 1);
       if (e.key === 'ArrowRight') show(current + 1);
     });
-    // Clique fora da imagem fecha.
     dialog.addEventListener('click', (e) => {
       if (e.target === dialog || e.target === dialog.querySelector('.lightbox__figure')) dialog.close();
     });
     dialog.addEventListener('close', () => {
       img.removeAttribute('src');
+      window.dispatchEvent(new CustomEvent('lm:unlock'));
       trigger?.focus();
     });
   }
