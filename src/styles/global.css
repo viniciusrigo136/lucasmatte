@@ -1,0 +1,214 @@
+@import '@fontsource/libre-baskerville/latin-400.css';
+@import '@fontsource/manrope/latin-400.css';
+@import '@fontsource/manrope/latin-500.css';
+
+:root {
+  --background: #f3efe7; /* marfim */
+  --surface: #faf8f4; /* branco quente */
+  --text-primary: #302d29; /* grafite quente */
+  --text-secondary: #68615a;
+  --primary: #302d29;
+  --on-primary: #f3efe7;
+  --primary-hover: #49433c;
+  --sand: #c7b8a3;
+  --accent: #8a6b50; /* bronze fosco — apenas linhas e detalhes */
+  --border: #ded5c8;
+  --on-dark-muted: #c7b8a3;
+
+  --font-serif: 'Libre Baskerville', 'Iowan Old Style', Georgia, serif;
+  --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --gutter: clamp(1rem, 6vw, 6rem);
+  --max: 90rem;
+  --header-h: 4.75rem;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --step--1: 0.8125rem;
+  --step-0: 1.0625rem;
+  --step-1: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem);
+  --step-2: clamp(1.5rem, 1.25rem + 1vw, 2rem);
+  --step-3: clamp(2rem, 1.4rem + 2.4vw, 3.375rem);
+  --step-4: clamp(2.5rem, 1.55rem + 4vw, 6rem);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--header-h) + 1rem);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
+  line-height: 1.65;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--primary);
+  color: var(--on-primary);
+  text-decoration: none;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Botões e links de ação */
+.btn {
+  --btn-bg: var(--primary);
+  --btn-fg: var(--on-primary);
+  --btn-bd: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 3rem;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid var(--btn-bd);
+  border-radius: 2px;
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  font: 500 0.9375rem/1.2 var(--font-sans);
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.25s var(--ease-out),
+    color 0.25s var(--ease-out),
+    border-color 0.25s var(--ease-out),
+    transform 0.15s var(--ease-out);
+}
+.btn:hover {
+  --btn-bg: var(--primary-hover);
+  --btn-bd: var(--primary-hover);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn--light {
+  --btn-bg: var(--on-primary);
+  --btn-fg: var(--text-primary);
+  --btn-bd: var(--on-primary);
+}
+.btn--light:hover {
+  --btn-bg: var(--surface);
+  --btn-bd: var(--surface);
+}
+
+.btn--ghost-light {
+  --btn-bg: transparent;
+  --btn-fg: var(--on-primary);
+  --btn-bd: rgb(243 239 231 / 0.55);
+}
+.btn--ghost-light:hover {
+  --btn-bg: rgb(243 239 231 / 0.12);
+  --btn-bd: var(--on-primary);
+}
+
+.btn--ghost {
+  --btn-bg: transparent;
+  --btn-fg: var(--text-primary);
+  --btn-bd: var(--text-primary);
+}
+.btn--ghost:hover {
+  --btn-bg: var(--text-primary);
+  --btn-fg: var(--on-primary);
+  --btn-bd: var(--text-primary);
+}
+
+.text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.35em;
+  text-decoration-color: var(--accent);
+  transition: text-decoration-color 0.2s;
+}
+.text-link:hover {
+  text-decoration-color: currentColor;
+}
+
+/* Movimento: estados iniciais só existem com JS e sem preferência por movimento reduzido. */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}

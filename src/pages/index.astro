@@ -1,0 +1,412 @@
+---
+import { Picture, getImage } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { projetos, getProject } from '../data/projetos';
+import { site } from '../data/site';
+import retrato from '../assets/sobre/lucas-matte-retrato.jpg';
+import atuacaoImg from '../assets/projetos/casa-erechim/dsc08514.jpg';
+import ogSrc from '../assets/projetos/igreja/dsc09501.jpg';
+
+const og = await getImage({ src: ogSrc, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+
+// Ritmo editorial: ampla + vertical, vertical + ampla, panorâmica.
+const p = (slug: string) => getProject(slug)!;
+const rows = [
+  { a: p('casa-de-campo'), b: p('casa-erechim'), flip: false },
+  { a: p('casa-nova-erechim'), b: p('decorare'), flip: true },
+];
+const pano = p('igreja');
+const featured = new Set([...rows.flatMap((r) => [r.a.slug, r.b.slug]), pano.slug]);
+const extras = projetos.filter((x) => !featured.has(x.slug));
+
+const areas = [
+  {
+    n: '01',
+    title: 'Residencial',
+    text: 'Espaços pensados para acolher a rotina e expressar a identidade de quem mora.',
+  },
+  {
+    n: '02',
+    title: 'Comercial',
+    text: 'Ambientes que conectam funcionalidade, experiência e identidade do negócio.',
+  },
+  {
+    n: '03',
+    title: 'Interiores',
+    text: 'Materiais, iluminação e composição em diálogo com a forma de usar cada ambiente.',
+  },
+];
+const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
+---
+
+<Base overlayHeader ogImage={og.src}>
+  <Hero />
+
+  <section id="introducao" class="intro" aria-labelledby="intro-title">
+    <div class="wrap intro__grid">
+      <h2 id="intro-title" class="intro__title" data-reveal>Cada espaço começa com uma forma de viver.</h2>
+      <p class="intro__text" data-reveal>
+        Antes de materiais e formas, vem o jeito de usar a casa, o trabalho, o encontro. É a partir dessa
+        rotina que estética e funcionalidade se ajustam, até o espaço fazer sentido para quem vive nele.
+      </p>
+    </div>
+  </section>
+
+  <section id="projetos" class="projects" aria-labelledby="projetos-title">
+    <div class="wrap">
+      <header class="section-head">
+        <h2 id="projetos-title" class="section-title">Projetos selecionados</h2>
+        <p class="section-note">Abra um projeto para ver a galeria completa.</p>
+      </header>
+
+      {
+        rows.map((row) => (
+          <div class:list={['projects__row', { 'projects__row--flip': row.flip }]}>
+            <ProjectCard
+              project={row.a}
+              shape="wide"
+              class="projects__wide"
+              sizes="(min-width: 60rem) 56vw, 100vw"
+            />
+            <ProjectCard
+              project={row.b}
+              shape="tall"
+              class="projects__tall"
+              sizes="(min-width: 60rem) 34vw, 100vw"
+            />
+          </div>
+        ))
+      }
+
+      <div class="projects__pano">
+        <ProjectCard project={pano} shape="pano" sizes="(min-width: 90rem) 1248px, 100vw" />
+      </div>
+
+      {
+        extras.length > 0 && (
+          <div class="projects__extras">
+            {extras.map((x) => (
+              <ProjectCard project={x} shape="wide" sizes="(min-width: 60rem) 45vw, 100vw" />
+            ))}
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <section id="sobre" class="about" aria-labelledby="sobre-title">
+    <div class="wrap about__grid">
+      <div class="about__media" data-reveal>
+        <Picture
+          src={retrato}
+          alt="Retrato de Lucas Matté sentado diante de uma parede de vegetação, vestindo camiseta preta."
+          widths={[420, 640, 900, 1200]}
+          sizes="(min-width: 60rem) 38vw, 100vw"
+          formats={['avif', 'webp']}
+          quality={72}
+        />
+      </div>
+      <div class="about__text">
+        <h2 id="sobre-title" class="section-title" data-reveal>
+          Um olhar atento ao que torna cada projeto único.
+        </h2>
+        <div class="about__body" data-reveal>
+          <p>
+            Lucas Matté Arquitetura desenvolve projetos residenciais, comerciais e de interiores.
+          </p>
+          <p>
+            Nos trabalhos reunidos aqui, madeira, pedra, vegetação e luz quente aparecem como matéria de
+            projeto — de uma casa de campo em tijolo aparente a uma igreja desenhada pela iluminação.
+          </p>
+        </div>
+        <a href={site.contact.instagram.url} class="text-link" target="_blank" rel="noopener" data-reveal>
+          Acompanhe no Instagram {site.contact.instagram.handle}
+          <span class="visually-hidden">(abre em nova aba)</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="atuacao" class="areas" aria-labelledby="atuacao-title">
+    <div class="wrap areas__grid">
+      <div class="areas__head">
+        <h2 id="atuacao-title" class="section-title">Áreas de atuação</h2>
+        <div class="areas__media" data-reveal>
+          <Picture
+            src={atuacaoImg}
+            alt="Sala da Casa Erechim com lareira revestida em pedra clara e pendente em anéis iluminados."
+            widths={[400, 640, 900]}
+            sizes="(min-width: 60rem) 30vw, 100vw"
+            formats={['avif', 'webp']}
+            quality={70}
+          />
+        </div>
+      </div>
+      <ol class="areas__list">
+        {
+          areas.map((a) => (
+            <li class="areas__item" data-reveal>
+              <span class="areas__n" aria-hidden="true">{a.n}</span>
+              <h3 class="areas__title">{a.title}</h3>
+              <p class="areas__text">{a.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section id="contato" class="contact" aria-labelledby="contato-title">
+    <div class="wrap contact__grid">
+      <h2 id="contato-title" class="contact__title" data-reveal>Vamos dar forma ao seu próximo espaço?</h2>
+      <div class="contact__side" data-reveal>
+        <p>
+          Conte o que você imagina — uma casa, um ambiente, um negócio. A conversa começa pelo jeito como você
+          quer viver ou usar o espaço.
+        </p>
+        <div class="contact__actions">
+          <a href={contactHref} class="btn btn--light" target="_blank" rel="noopener">
+            Conversar pelo WhatsApp
+            <span class="visually-hidden">(abre em nova aba)</span>
+          </a>
+          <a href={site.contact.instagram.url} class="btn btn--ghost-light" target="_blank" rel="noopener">
+            Ver o Instagram
+            <span class="visually-hidden">(abre em nova aba)</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .section-title {
+    font-size: var(--step-3);
+  }
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.75rem 2rem;
+    padding-bottom: 1.25rem;
+    margin-bottom: clamp(2rem, 5vw, 4rem);
+    border-bottom: 1px solid var(--text-primary);
+  }
+  .section-note {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+  }
+
+  /* Introdução */
+  .intro {
+    padding-block: clamp(4.5rem, 10vw, 8.5rem);
+  }
+  .intro__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: end;
+  }
+  .intro__title {
+    font-size: var(--step-3);
+    max-width: 16ch;
+  }
+  .intro__text {
+    max-width: 42ch;
+    color: var(--text-secondary);
+    font-size: var(--step-1);
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--accent);
+  }
+
+  /* Projetos */
+  .projects {
+    padding-bottom: clamp(4.5rem, 10vw, 8rem);
+  }
+  .projects__row {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: clamp(1.5rem, 3vw, 3rem);
+    align-items: end;
+    margin-bottom: clamp(3.5rem, 8vw, 7rem);
+  }
+  .projects__row :global(.projects__wide) {
+    grid-column: 1 / span 7;
+  }
+  .projects__row :global(.projects__tall) {
+    grid-column: 9 / span 4;
+  }
+  .projects__row--flip :global(.projects__wide) {
+    grid-column: 6 / span 7;
+    grid-row: 1;
+  }
+  .projects__row--flip :global(.projects__tall) {
+    grid-column: 1 / span 4;
+    grid-row: 1;
+    align-self: start;
+  }
+  .projects__pano {
+    width: 100%;
+  }
+  .projects__extras {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(1.5rem, 3vw, 3rem);
+    margin-top: clamp(3.5rem, 8vw, 7rem);
+  }
+
+  /* Sobre */
+  .about {
+    padding-block: clamp(4.5rem, 10vw, 8rem);
+    background: var(--surface);
+    border-block: 1px solid var(--border);
+  }
+  .about__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: clamp(2rem, 7vw, 7rem);
+    align-items: center;
+  }
+  .about__media :global(img) {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    object-position: 50% 30%;
+  }
+  .about__text {
+    display: grid;
+    gap: clamp(1.5rem, 3vw, 2.25rem);
+    justify-items: start;
+    max-width: 36rem;
+  }
+  .about__body {
+    display: grid;
+    gap: 1rem;
+    font-size: var(--step-1);
+    color: var(--text-secondary);
+  }
+
+  /* Atuação */
+  .areas {
+    padding-block: clamp(4.5rem, 10vw, 8rem);
+  }
+  .areas__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+    gap: clamp(2rem, 7vw, 7rem);
+  }
+  .areas__head {
+    display: grid;
+    gap: 2rem;
+    align-content: start;
+  }
+  .areas__media :global(img) {
+    width: 100%;
+    max-width: 22rem;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+  }
+  .areas__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--text-primary);
+    align-self: end;
+  }
+  .areas__item {
+    display: grid;
+    grid-template-columns: 4rem minmax(0, 12rem) minmax(0, 1fr);
+    gap: 0.5rem 2rem;
+    align-items: baseline;
+    padding-block: clamp(1.75rem, 3.5vw, 2.75rem);
+    border-bottom: 1px solid var(--border);
+  }
+  .areas__n {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    color: var(--accent);
+  }
+  .areas__title {
+    font-size: var(--step-2);
+  }
+  .areas__text {
+    color: var(--text-secondary);
+    max-width: 38ch;
+  }
+
+  /* Contato */
+  .contact {
+    background: var(--primary);
+    color: var(--on-primary);
+    padding-block: clamp(5rem, 12vw, 9rem);
+  }
+  .contact__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: end;
+  }
+  .contact__title {
+    font-size: var(--step-4);
+    line-height: 1.06;
+    max-width: 14ch;
+  }
+  .contact__side {
+    display: grid;
+    gap: 2rem;
+    color: rgb(243 239 231 / 0.86);
+    font-size: var(--step-1);
+    max-width: 30rem;
+  }
+  .contact__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  @media (max-width: 59.99rem) {
+    .intro__grid,
+    .about__grid,
+    .areas__grid,
+    .contact__grid {
+      grid-template-columns: 1fr;
+    }
+    .projects__row {
+      grid-template-columns: 1fr;
+      row-gap: clamp(3rem, 8vw, 4rem);
+    }
+    .projects__row :global(.projects__wide),
+    .projects__row :global(.projects__tall),
+    .projects__row--flip :global(.projects__wide),
+    .projects__row--flip :global(.projects__tall) {
+      grid-column: 1;
+      grid-row: auto;
+    }
+    .projects__row :global(.projects__tall) {
+      width: min(100%, 30rem);
+    }
+    .projects__row--flip :global(.projects__tall) {
+      justify-self: end;
+    }
+    .projects__extras {
+      grid-template-columns: 1fr;
+    }
+    .areas__media {
+      display: none;
+    }
+    .contact__actions .btn {
+      flex: 1 1 14rem;
+    }
+  }
+  @media (max-width: 40rem) {
+    .areas__item {
+      grid-template-columns: 2.5rem 1fr;
+    }
+    .areas__text {
+      grid-column: 2;
+    }
+  }
+</style>

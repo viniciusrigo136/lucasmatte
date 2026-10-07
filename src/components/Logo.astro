@@ -1,0 +1,60 @@
+---
+import { Image } from 'astro:assets';
+import logoGrafite from '../assets/marca/logo-grafite.png';
+import logoMarfim from '../assets/marca/logo-marfim.png';
+
+interface Props {
+  /** Variante: grafite (fundos claros), marfim (fundos escuros) ou ambas, alternadas por CSS. */
+  tone?: 'dark' | 'light' | 'both';
+  width?: number;
+  class?: string;
+  eager?: boolean;
+}
+
+const { tone = 'dark', width = 168, class: className, eager = false } = Astro.props;
+const loading = eager ? 'eager' : 'lazy';
+---
+
+<span class:list={['logo', className]}>
+  {
+    (tone === 'dark' || tone === 'both') && (
+      <Image
+        src={logoGrafite}
+        alt={tone === 'both' ? '' : 'Lucas Matté Arquitetura'}
+        width={width}
+        widths={[width, width * 2]}
+        sizes={`${width}px`}
+        class="logo__img logo__img--dark"
+        loading={loading}
+        format="webp"
+      />
+    )
+  }
+  {
+    (tone === 'light' || tone === 'both') && (
+      <Image
+        src={logoMarfim}
+        alt={tone === 'both' ? '' : 'Lucas Matté Arquitetura'}
+        width={width}
+        widths={[width, width * 2]}
+        sizes={`${width}px`}
+        class="logo__img logo__img--light"
+        loading={loading}
+        format="webp"
+      />
+    )
+  }
+  {tone === 'both' && <span class="visually-hidden">Lucas Matté Arquitetura</span>}
+</span>
+
+<style>
+  .logo {
+    display: inline-grid;
+    line-height: 0;
+  }
+  .logo__img {
+    grid-area: 1 / 1;
+    width: 100%;
+    height: auto;
+  }
+</style>

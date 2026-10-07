@@ -1,0 +1,385 @@
+---
+import { Picture, getImage } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import { projetos, projectImage, projectMeta, type ProjectData } from '../../data/projetos';
+import { site } from '../../data/site';
+
+export function getStaticPaths() {
+  return projetos.map((project) => ({ params: { slug: project.slug }, props: { project } }));
+}
+
+interface Props {
+  project: ProjectData;
+}
+
+const { project } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const images = await Promise.all(
+  project.images.map(async (img) => {
+    const src = projectImage(project.slug, img.file);
+    const large = await getImage({ src, width: Math.min(src.width, 2400), format: 'webp', quality: 80 });
+    return { ...img, src, landscape: src.width > src.height, largeSrc: large.src };
+  }),
+);
+
+// Linhas da galeria: paisagem ocupa a linha; retratos consecutivos formam pares.
+type Row = { kind: 'full' | 'pair' | 'single'; items: typeof images };
+const rows: Row[] = [];
+for (let i = 0; i < images.length; i++) {
+  const cur = images[i];
+  if (cur.landscape) rows.push({ kind: 'full', items: [cur] });
+  else if (images[i + 1] && !images[i + 1].landscape) {
+    rows.push({ kind: 'pair', items: [cur, images[i + 1]] });
+    i++;
+  } else rows.push({ kind: 'single', items: [cur] });
+}
+let index = 0;
+const rowsIndexed = rows.map((r) => ({ ...r, items: r.items.map((it) => ({ ...it, i: index++ })) }));
+
+const cover = images.find((i) => i.file === project.cover) ?? images[0];
+const og = await getImage({ src: cover.src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
+
+const pos = projetos.findIndex((p) => p.slug === project.slug);
+const next = projetos[(pos + 1) % projetos.length];
+const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
+---
+
+<Base title={`${project.title} | ${site.name}`} description={`${project.title}: ${project.summary}`} ogImage={og.src}>
+  <article class="project">
+    <header class="wrap project__head">
+      <a href={`${base}/#projetos`} class="text-link project__back">Voltar aos projetos</a>
+      <h1 class="project__title">{project.title}</h1>
+      <dl class="project__facts">
+        <div>
+          <dt>Categoria</dt>
+          <dd>{project.category}</dd>
+        </div>
+        {
+          project.location && (
+            <div>
+              <dt>Cidade</dt>
+              <dd>{project.location}</dd>
+            </div>
+          )
+        }
+        <div>
+          <dt>Fotografias</dt>
+          <dd>{images.length}</dd>
+        </div>
+      </dl>
+      <div class="project__desc">
+        {project.description.map((para) => <p>{para}</p>)}
+      </div>
+    </header>
+
+    <section class="wrap gallery" aria-label={`Galeria de fotos: ${project.title}`}>
+      {
+        rowsIndexed.map((row) => (
+          <div class:list={['gallery__row', `gallery__row--${row.kind}`]}>
+            {row.items.map((img) => (
+              <button
+                type="button"
+                class="gallery__item"
+                data-lightbox-index={img.i}
+                data-full={img.largeSrc}
+                data-alt={img.alt}
+                aria-label={`Ampliar foto ${img.i + 1} de ${images.length}: ${img.alt}`}
+              >
+                <Picture
+                  src={img.src}
+                  alt={img.alt}
+                  widths={row.kind === 'full' ? [640, 960, 1400, 1920, 2400] : [420, 640, 900, 1200]}
+                  sizes={row.kind === 'full' ? '(min-width: 90rem) 1248px, 100vw' : '(min-width: 48rem) 45vw, 100vw'}
+                  formats={['avif', 'webp']}
+                  quality={72}
+                  loading={img.i === 0 ? 'eager' : 'lazy'}
+                  fetchpriority={img.i === 0 ? 'high' : undefined}
+                />
+              </button>
+            ))}
+          </div>
+        ))
+      }
+    </section>
+
+    <section class="project__cta" aria-labelledby="cta-title">
+      <div class="wrap project__cta-grid">
+        <h2 id="cta-title" class="project__cta-title">Tem um espaço em mente?</h2>
+        <div class="project__cta-actions">
+          <a href={contactHref} class="btn btn--light" target="_blank" rel="noopener">
+            Conversar pelo WhatsApp<span class="visually-hidden"> (abre em nova aba)</span>
+          </a>
+          <a href={`${base}/projetos/${next.slug}/`} class="btn btn--ghost-light">Próximo projeto: {next.title}</a>
+        </div>
+      </div>
+    </section>
+  </article>
+
+  <dialog class="lightbox" aria-label="Visualização ampliada da foto">
+    <div class="lightbox__bar">
+      <p class="lightbox__count" aria-live="polite"></p>
+      <button type="button" class="lightbox__btn" data-close>Fechar</button>
+    </div>
+    <figure class="lightbox__figure">
+      <img class="lightbox__img" alt="" />
+      <figcaption class="lightbox__caption"></figcaption>
+    </figure>
+    <div class="lightbox__nav">
+      <button type="button" class="lightbox__btn" data-prev>Anterior</button>
+      <button type="button" class="lightbox__btn" data-next>Próxima</button>
+    </div>
+  </dialog>
+</Base>
+
+<style>
+  .project__head {
+    display: grid;
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    grid-template-areas:
+      'back back'
+      'title facts'
+      'desc desc';
+    gap: 1.5rem clamp(2rem, 6vw, 6rem);
+    padding-top: calc(var(--header-h) + clamp(2rem, 5vw, 4rem));
+    padding-bottom: clamp(2.5rem, 5vw, 4rem);
+  }
+  .project__back {
+    grid-area: back;
+    justify-self: start;
+    font-size: 0.9375rem;
+  }
+  .project__title {
+    grid-area: title;
+    font-size: var(--step-4);
+    line-height: 1.04;
+  }
+  .project__facts {
+    grid-area: facts;
+    align-self: end;
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--text-primary);
+  }
+  .project__facts div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9375rem;
+  }
+  .project__facts dt {
+    color: var(--text-secondary);
+  }
+  .project__facts dd {
+    margin: 0;
+    font-weight: 500;
+  }
+  .project__desc {
+    grid-area: desc;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem clamp(2rem, 6vw, 6rem);
+    padding-top: clamp(1rem, 3vw, 2rem);
+    color: var(--text-secondary);
+    font-size: var(--step-1);
+  }
+  .project__desc p {
+    max-width: 44ch;
+  }
+
+  .gallery {
+    display: grid;
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+    padding-bottom: clamp(4rem, 8vw, 7rem);
+  }
+  .gallery__row {
+    display: grid;
+    gap: clamp(0.75rem, 2vw, 1.5rem);
+  }
+  .gallery__row--pair {
+    grid-template-columns: 1fr 1fr;
+  }
+  .gallery__row--single {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  }
+  .gallery__item {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: var(--border);
+    cursor: zoom-in;
+    overflow: hidden;
+  }
+  .gallery__item:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 4px;
+  }
+  .gallery__item :global(img) {
+    width: 100%;
+    height: auto;
+    transition: transform 0.8s var(--ease-out);
+  }
+  .gallery__row--pair .gallery__item :global(img) {
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .gallery__item:hover :global(img) {
+      transform: scale(1.02);
+    }
+  }
+
+  .project__cta {
+    background: var(--primary);
+    color: var(--on-primary);
+    padding-block: clamp(4rem, 9vw, 7rem);
+  }
+  .project__cta-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: end;
+    gap: 2rem;
+  }
+  .project__cta-title {
+    font-size: var(--step-3);
+  }
+  .project__cta-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .lightbox {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(24 22 20 / 0.97);
+    color: var(--on-primary);
+  }
+  .lightbox[open] {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+  .lightbox::backdrop {
+    background: rgb(24 22 20 / 0.9);
+  }
+  .lightbox__bar,
+  .lightbox__nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem var(--gutter);
+  }
+  .lightbox__count {
+    font-size: 0.875rem;
+    color: var(--on-dark-muted);
+  }
+  .lightbox__figure {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    gap: 0.75rem;
+    min-height: 0;
+    margin: 0;
+    padding-inline: var(--gutter);
+  }
+  .lightbox__img {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    object-fit: contain;
+  }
+  .lightbox__caption {
+    max-width: 60ch;
+    margin-inline: auto;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--on-dark-muted);
+  }
+  .lightbox__btn {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgb(243 239 231 / 0.4);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--on-primary);
+    font: 500 0.875rem/1 var(--font-sans);
+    cursor: pointer;
+  }
+  .lightbox__btn:hover {
+    background: rgb(243 239 231 / 0.12);
+    border-color: var(--on-primary);
+  }
+
+  @media (max-width: 47.99rem) {
+    .project__head {
+      grid-template-columns: 1fr;
+      grid-template-areas: 'back' 'title' 'facts' 'desc';
+    }
+    .project__desc {
+      grid-template-columns: 1fr;
+    }
+    .gallery__row--single {
+      grid-template-columns: 1fr;
+    }
+    .project__cta-actions .btn {
+      flex: 1 1 14rem;
+    }
+  }
+</style>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('.lightbox');
+  const items = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-lightbox-index]'));
+
+  if (dialog && items.length) {
+    const img = dialog.querySelector<HTMLImageElement>('.lightbox__img')!;
+    const caption = dialog.querySelector<HTMLElement>('.lightbox__caption')!;
+    const count = dialog.querySelector<HTMLElement>('.lightbox__count')!;
+    let current = 0;
+    let trigger: HTMLElement | null = null;
+
+    const show = (i: number) => {
+      current = (i + items.length) % items.length;
+      const item = items[current];
+      img.src = item.dataset.full!;
+      img.alt = item.dataset.alt!;
+      caption.textContent = item.dataset.alt!;
+      count.textContent = `Foto ${current + 1} de ${items.length}`;
+    };
+
+    items.forEach((item, i) =>
+      item.addEventListener('click', () => {
+        trigger = item;
+        show(i);
+        dialog.showModal();
+        dialog.querySelector<HTMLButtonElement>('[data-close]')!.focus();
+      }),
+    );
+
+    dialog.querySelector('[data-close]')!.addEventListener('click', () => dialog.close());
+    dialog.querySelector('[data-prev]')!.addEventListener('click', () => show(current - 1));
+    dialog.querySelector('[data-next]')!.addEventListener('click', () => show(current + 1));
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') show(current - 1);
+      if (e.key === 'ArrowRight') show(current + 1);
+    });
+    // Clique fora da imagem fecha.
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog || e.target === dialog.querySelector('.lightbox__figure')) dialog.close();
+    });
+    dialog.addEventListener('close', () => {
+      img.removeAttribute('src');
+      trigger?.focus();
+    });
+  }
+</script>

@@ -1,0 +1,319 @@
+---
+import Logo from './Logo.astro';
+import { site } from '../data/site';
+
+interface Props {
+  /** true: começa transparente sobre a hero e fica sólido ao sair dela. */
+  overlay?: boolean;
+}
+
+const { overlay = false } = Astro.props;
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const home = `${base}/`;
+const nav = [
+  { href: `${home}#projetos`, label: 'Projetos' },
+  { href: `${home}#sobre`, label: 'Sobre' },
+  { href: `${home}#atuacao`, label: 'Atuação' },
+  { href: `${home}#contato`, label: 'Contato' },
+];
+const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
+---
+
+<header class="site-header" data-overlay={overlay ? 'true' : 'false'} data-solid={overlay ? 'false' : 'true'}>
+  <div class="site-header__inner">
+    <a href={home} class="site-header__brand" aria-label="Lucas Matté Arquitetura, página inicial">
+      <Logo tone="both" width={168} eager class="site-header__logo" />
+    </a>
+
+    <nav class="site-nav" aria-label="Principal">
+      <ul class="site-nav__list">
+        {nav.map((item) => <li><a href={item.href} class="site-nav__link">{item.label}</a></li>)}
+      </ul>
+      <a href={ctaHref} class="site-nav__cta" target="_blank" rel="noopener">
+        Conversar sobre um projeto
+        <span class="visually-hidden">(abre o WhatsApp em nova aba)</span>
+      </a>
+    </nav>
+
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="menu-mobile"
+    >
+      <span class="menu-toggle__label">Menu</span>
+      <span class="menu-toggle__bars" aria-hidden="true"><span></span><span></span></span>
+    </button>
+  </div>
+
+  <div class="menu-mobile" id="menu-mobile" hidden>
+    <nav aria-label="Principal (celular)">
+      <ul class="menu-mobile__list">
+        {nav.map((item) => <li><a href={item.href} class="menu-mobile__link">{item.label}</a></li>)}
+      </ul>
+    </nav>
+    <div class="menu-mobile__foot">
+      <a href={ctaHref} class="btn btn--light" target="_blank" rel="noopener">
+        Conversar sobre um projeto
+        <span class="visually-hidden">(abre o WhatsApp em nova aba)</span>
+      </a>
+      <a href={site.contact.instagram.url} class="text-link" target="_blank" rel="noopener">
+        Instagram {site.contact.instagram.handle}
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    color: var(--text-primary);
+    transition:
+      background-color 0.35s var(--ease-out),
+      border-color 0.35s var(--ease-out),
+      color 0.35s var(--ease-out);
+    border-bottom: 1px solid transparent;
+  }
+  .site-header[data-solid='true'] {
+    background: var(--surface);
+    border-bottom-color: var(--border);
+  }
+  .site-header[data-solid='false'] {
+    color: var(--on-primary);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    max-width: var(--max);
+    height: var(--header-h);
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  .site-header__brand {
+    display: block;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .site-header__brand :global(.site-header__logo) {
+    width: clamp(124px, 11vw, 160px);
+  }
+  .site-header__brand :global(.logo__img) {
+    transition: opacity 0.35s var(--ease-out);
+  }
+  .site-header[data-solid='false'] .site-header__brand :global(.logo__img--dark),
+  .site-header[data-solid='true'] .site-header__brand :global(.logo__img--light) {
+    opacity: 0;
+  }
+  /* Com o menu aberto o fundo é grafite: logo marfim. */
+  .site-header.is-open .site-header__brand :global(.logo__img--dark) {
+    opacity: 0;
+  }
+  .site-header.is-open .site-header__brand :global(.logo__img--light) {
+    opacity: 1;
+  }
+
+  .site-nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(1.5rem, 3vw, 2.75rem);
+  }
+  .site-nav__list {
+    display: flex;
+    gap: clamp(1.25rem, 2.4vw, 2.25rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .site-nav__link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    background: linear-gradient(currentColor, currentColor) 0 calc(100% - 0.6rem) / 0 1px no-repeat;
+    transition: background-size 0.3s var(--ease-out);
+  }
+  .site-nav__link:hover {
+    background-size: 100% 1px;
+  }
+  .site-nav__cta {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.125rem;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition:
+      background-color 0.25s var(--ease-out),
+      color 0.25s var(--ease-out);
+  }
+  .site-header[data-solid='false'] .site-nav__cta:hover {
+    background: var(--on-primary);
+    color: var(--text-primary);
+  }
+  .site-header[data-solid='true'] .site-nav__cta:hover {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+
+  .menu-toggle {
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    padding: 0 0.25rem 0 0.75rem;
+    margin-right: -0.25rem;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: 500 0.9375rem/1 var(--font-sans);
+    cursor: pointer;
+  }
+  .menu-toggle__bars {
+    display: grid;
+    gap: 6px;
+    width: 22px;
+  }
+  .menu-toggle__bars span {
+    display: block;
+    height: 1px;
+    background: currentColor;
+    transition: transform 0.3s var(--ease-out);
+  }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__bars span:first-child {
+    transform: translateY(3.5px) rotate(45deg);
+  }
+  .menu-toggle[aria-expanded='true'] .menu-toggle__bars span:last-child {
+    transform: translateY(-3.5px) rotate(-45deg);
+  }
+
+  .menu-mobile {
+    position: fixed;
+    inset: var(--header-h) 0 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2rem var(--gutter) max(2rem, env(safe-area-inset-bottom));
+    background: var(--primary);
+    color: var(--on-primary);
+    overflow-y: auto;
+  }
+  .menu-mobile[hidden] {
+    display: none;
+  }
+  .menu-mobile__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid rgb(243 239 231 / 0.18);
+  }
+  .menu-mobile__list li {
+    border-bottom: 1px solid rgb(243 239 231 / 0.18);
+  }
+  .menu-mobile__link {
+    display: block;
+    padding: 1.1rem 0;
+    font-family: var(--font-serif);
+    font-size: clamp(1.75rem, 7vw, 2.5rem);
+    line-height: 1.2;
+    text-decoration: none;
+  }
+  .menu-mobile__foot {
+    display: grid;
+    gap: 1rem;
+    justify-items: start;
+  }
+  .menu-mobile__foot .text-link {
+    color: var(--on-dark-muted);
+  }
+
+  .site-header.is-open {
+    background: var(--primary);
+    color: var(--on-primary);
+    border-bottom-color: rgb(243 239 231 / 0.18);
+  }
+
+  @media (max-width: 60rem) {
+    .site-nav {
+      display: none;
+    }
+    .menu-toggle {
+      display: inline-flex;
+    }
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header');
+  const toggle = header?.querySelector<HTMLButtonElement>('.menu-toggle');
+  const panel = document.getElementById('menu-mobile');
+
+  if (header && toggle && panel) {
+    // Header: transparente sobre a hero, sólido ao sair dela.
+    const hero = document.querySelector('[data-hero]');
+    if (header.dataset.overlay === 'true' && hero) {
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          header.dataset.solid = entry.isIntersecting ? 'false' : 'true';
+        },
+        { rootMargin: `-${header.offsetHeight}px 0px 0px 0px` },
+      );
+      io.observe(hero);
+    }
+
+    const focusables = () =>
+      Array.from(
+        header.querySelectorAll<HTMLElement>('.site-header__brand, .menu-toggle, #menu-mobile a'),
+      );
+
+    const setOpen = (open: boolean, returnFocus = true) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.querySelector('.menu-toggle__label')!.textContent = open ? 'Fechar' : 'Menu';
+      panel.hidden = !open;
+      header.classList.toggle('is-open', open);
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+      if (open) panel.querySelector<HTMLElement>('a')?.focus();
+      else if (returnFocus) toggle.focus();
+    };
+
+    toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+
+    panel.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) setOpen(false, false);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (toggle.getAttribute('aria-expanded') !== 'true') return;
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setOpen(false);
+      } else if (e.key === 'Tab') {
+        const items = focusables();
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
+
+    window.matchMedia('(min-width: 60.0625rem)').addEventListener('change', (e) => {
+      if (e.matches && toggle.getAttribute('aria-expanded') === 'true') setOpen(false, false);
+    });
+  }
+</script>
