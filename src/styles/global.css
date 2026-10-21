@@ -247,7 +247,9 @@ a {
 /* Link grande de contato (chamada final da home e da página de projeto). */
 .link-lg {
   display: inline-flex;
-  align-items: baseline;
+  /* 44px de área de toque; o texto fica junto do sublinhado, na base. */
+  align-items: flex-end;
+  min-height: 2.75rem;
   font-family: var(--font-serif);
   font-size: clamp(1.75rem, 1rem + 2.4vw, 3.25rem);
   line-height: 1.1;

@@ -251,7 +251,8 @@ const demais = projetos.filter((p) => !p.featured);
     gap: var(--space-block);
   }
   .cta__title {
-    font-size: clamp(3.25rem, 1rem + 9vw, 10rem);
+    /* Mínimo de 2.5rem: em 320px, "permaneça." com o recuo de uma coluna cabe na linha. */
+    font-size: clamp(2.5rem, 1rem + 9vw, 10rem);
     line-height: 0.96;
     letter-spacing: -0.04em;
     text-wrap: initial;
