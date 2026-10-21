@@ -3,18 +3,23 @@
 @import '@fontsource/manrope/latin-500.css';
 
 :root {
+  /* ——— Cores ———
+     Base da marca: grafite e marfim (cores exatas da logo).
+     O bronze tem uma versão para cada tipo de fundo, sempre com 4,5:1 ou mais. */
   --background: #f3efe7; /* marfim */
   --surface: #faf8f4; /* branco quente */
-  --text-primary: #302d29; /* grafite quente */
+  --text-primary: #302d29; /* grafite */
   --text-secondary: #68615a;
   --primary: #302d29;
   --on-primary: #f3efe7;
   --primary-hover: #49433c;
-  --sand: #c7b8a3;
-  --accent: #8a6b50; /* bronze fosco — apenas linhas e detalhes */
   --border: #ded5c8;
   --on-dark-muted: #c7b8a3;
   --ink-deep: #1f1d1a;
+  --bronze-on-light: #7f6247; /* sobre marfim / branco quente */
+  --bronze-on-dark: #b39577; /* sobre grafite / preto */
+  /* Exclusivo da área do Decorare (fase 4). */
+  --decorare-black: #000;
 
   --font-serif: 'Libre Baskerville', 'Iowan Old Style', Georgia, serif;
   --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -23,10 +28,11 @@
   --max: 100rem;
   --header-h: 5.5rem;
   --header-h-compact: 4rem;
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-arch: cubic-bezier(0.16, 1, 0.3, 1);
 
-  --step--1: 0.8125rem;
+  /* ——— Escala tipográfica ———
+     --step--1 (14px) é o menor tamanho permitido para qualquer texto legível. */
+  --step--1: 0.875rem;
   --step-0: 1.0625rem;
   --step-1: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem);
   --step-2: clamp(1.5rem, 1.2rem + 1.2vw, 2.25rem);
@@ -137,32 +143,23 @@ a {
   padding-inline: var(--gutter);
 }
 
-/* Marcadores editoriais: índice + rótulo, com linha fina */
-.marker {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
+/* Moldura de foto: a imagem preenche o quadro inteiro, recortada no centro. */
+.cover {
+  overflow: hidden;
 }
-.marker__n {
-  font-family: var(--font-serif);
-  font-size: 0.875rem;
-  letter-spacing: 0;
-  text-transform: none;
-  color: var(--text-primary);
-}
-.marker__rule {
-  width: clamp(2rem, 5vw, 4.5rem);
-  height: 1px;
-  background: currentColor;
-  opacity: 0.6;
+.cover picture,
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-/* Botões e links de ação */
+/* Linha de título que pode ser deslocada ou trocada sem alterar o fluxo. */
+.line {
+  display: block;
+}
+
+/* Botões */
 .btn {
   --btn-bg: var(--primary);
   --btn-fg: var(--on-primary);
@@ -184,145 +181,47 @@ a {
   transition:
     background-color 0.5s var(--ease-arch),
     color 0.5s var(--ease-arch),
-    border-color 0.5s var(--ease-arch),
-    transform 0.2s var(--ease-out);
+    border-color 0.5s var(--ease-arch);
 }
 .btn:hover {
   --btn-bg: var(--primary-hover);
   --btn-bd: var(--primary-hover);
 }
-.btn:active {
-  transform: translateY(1px);
-}
-.btn__arrow {
-  display: inline-block;
-  transition: transform 0.6s var(--ease-arch);
-}
-.btn:hover .btn__arrow {
-  transform: translateX(4px);
-}
 
-.btn--light {
-  --btn-bg: var(--on-primary);
-  --btn-fg: var(--text-primary);
-  --btn-bd: var(--on-primary);
-}
-.btn--light:hover {
-  --btn-bg: var(--surface);
-  --btn-bd: var(--surface);
-}
-.btn--ghost-light {
-  --btn-bg: transparent;
-  --btn-fg: var(--on-primary);
-  --btn-bd: rgb(243 239 231 / 0.45);
-}
-.btn--ghost-light:hover {
-  --btn-bg: rgb(243 239 231 / 0.1);
-  --btn-bd: var(--on-primary);
-}
-.btn--ghost {
-  --btn-bg: transparent;
-  --btn-fg: var(--text-primary);
-  --btn-bd: var(--text-primary);
-}
-.btn--ghost:hover {
-  --btn-bg: var(--text-primary);
-  --btn-fg: var(--on-primary);
-  --btn-bd: var(--text-primary);
-}
-
+/* Link de texto sublinhado. Em fundo escuro, defina --link-line: var(--bronze-on-dark). */
 .text-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
   min-height: 2.75rem;
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 0.4em;
-  text-decoration-color: var(--accent);
+  text-decoration-color: var(--link-line, var(--bronze-on-light));
   transition: text-decoration-color 0.3s;
 }
 .text-link:hover {
   text-decoration-color: currentColor;
 }
 
-/* ——— Movimento ———
-   Os estados iniciais só existem com JS ativo e sem preferência por movimento reduzido;
-   sem isso, todo o conteúdo aparece estático. */
-
-/* Linhas que sobem de dentro de uma máscara */
-.line {
-  display: block;
-  overflow: hidden;
-  /* folga para acentos (Á, ê) e descendentes (g, p, ç) sem cortar */
-  padding-block: 0.14em 0.1em;
-  margin-block: -0.14em -0.1em;
+/* Link grande de contato (chamada final da home e da página de projeto). */
+.link-lg {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 1rem + 2.4vw, 3.25rem);
+  line-height: 1.1;
+  text-decoration: none;
+  padding-bottom: 0.5rem;
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  transition: background-size 0.8s var(--ease-arch);
 }
-.line__inner {
-  display: block;
-}
-
-/* Reveal de imagem: máscara + escala */
-.reveal-img {
-  overflow: hidden;
-}
-.reveal-img > *,
-.reveal-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.link-lg:hover {
+  background-size: 30% 1px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .js [data-reveal] {
-    opacity: 0;
-    transform: translateY(24px);
-  }
-  .js [data-reveal-line] {
-    transform: scaleX(0);
-  }
-  .js [data-reveal-lines] .line__inner {
-    transform: translateY(110%);
-  }
-  .js .reveal-img[data-reveal-img] {
-    clip-path: inset(14% 0 0 0);
-  }
-  .js .reveal-img[data-reveal-img] > * {
-    transform: scale(1.08);
-  }
-}
-
-/* Garantia caso o script de animação não carregue */
-.motion-done [data-reveal] {
-  opacity: 1 !important;
-  transform: none !important;
-}
-.motion-done [data-reveal-line] {
-  transform: none !important;
-}
-.motion-done [data-reveal-lines] .line__inner {
-  transform: none !important;
-}
-.motion-done .reveal-img[data-reveal-img] {
-  clip-path: none !important;
-}
-.motion-done .reveal-img[data-reveal-img] > * {
-  transform: none !important;
-}
-
-/* Rolagem: travada com o menu aberto; ajustes recomendados pelo Lenis */
+/* Rolagem travada com o menu aberto */
 html.menu-open {
   overflow: hidden;
-}
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-.lenis.lenis-stopped {
-  overflow: clip;
 }
 
 /* Transição nativa entre páginas (MPA): a foto do projeto se expande na página interna. */

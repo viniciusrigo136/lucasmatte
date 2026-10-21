@@ -1,6 +1,7 @@
 ---
 import { getImage } from 'astro:assets';
-import { getProject, projectImage } from '../data/projetos';
+import { getProject, projectImage, projectMeta } from '../data/projetos';
+import { projectHref } from '../data/site';
 
 /**
  * Slides da hero: projetos reais do arquivo de dados. Para cada um, uma foto para
@@ -14,7 +15,6 @@ const config = [
   { slug: 'decorare', wide: 'dsc08706.jpg', tall: 'dsc08706.jpg', pos: '50% 40%', mpos: '42% 45%' },
 ];
 
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const wideWidths = [960, 1440, 1920, 2400];
 const tallWidths = [480, 750, 1080];
 
@@ -41,8 +41,8 @@ const slides = await Promise.all(
       i,
       n: String(i + 1).padStart(2, '0'),
       project,
-      href: `${base}/projetos/${c.slug}/`,
-      meta: project.location ? `${project.category} / ${project.location}` : project.category,
+      href: projectHref(c.slug),
+      meta: projectMeta(project),
       alt,
       wide,
       pos: c.pos,
@@ -68,7 +68,7 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
   aria-label="Projetos em destaque"
   data-interval="6000"
 >
-  <div class="hero__media" data-parallax="img">
+  <div class="hero__media">
     {
       slides.map((s) => (
         <div
@@ -105,35 +105,28 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
   <div class="hero__shade" aria-hidden="true"></div>
 
   <!-- Zonas laterais (mouse): anterior / próximo -->
-  <button class="hero__zone hero__zone--prev" type="button" data-go="-1" data-cursor="Anterior" tabindex="-1" aria-hidden="true"></button>
-  <button class="hero__zone hero__zone--next" type="button" data-go="1" data-cursor="Próximo" tabindex="-1" aria-hidden="true"></button>
+  <button class="hero__zone hero__zone--prev" type="button" data-go="-1" tabindex="-1" aria-hidden="true"></button>
+  <button class="hero__zone hero__zone--next" type="button" data-go="1" tabindex="-1" aria-hidden="true"></button>
 
-  <div class="hero__content" data-parallax="text">
+  <div class="hero__content">
     <h1 class="hero__title">
-      {
-        lines.map((l, i) => (
-          <span class="line">
-            <span class="line__inner hero-in" style={`--d: ${0.15 + i * 0.08}s`}>{l}</span>
-          </span>
-        ))
-      }
+      {lines.map((l) => <span class="line">{l}</span>)}
     </h1>
 
-    <div class="hero__info hero-fade">
+    <div class="hero__info">
       <p class="hero__count">
         <span class="line"><span class="line__inner" data-hero-count>{first.n}</span></span>
         <span class="hero__count-total">/ {total}</span>
       </p>
       <a href={first.href} class="hero__name" data-hero-link>
         <span class="line"><span class="line__inner" data-hero-name>{first.project.title}</span></span>
-        <span class="hero__name-arrow" aria-hidden="true">↗</span>
       </a>
       <p class="hero__meta">
         <span class="line"><span class="line__inner" data-hero-meta>{first.meta}</span></span>
       </p>
     </div>
 
-    <div class="hero__bar hero-fade">
+    <div class="hero__bar">
       <span class="hero__bar-n" aria-hidden="true">{first.n}</span>
       <span class="hero__track" aria-hidden="true">
         {slides.map((s) => <span class="hero__seg" data-seg={s.i}><span class="hero__fill" /></span>)}
@@ -171,22 +164,10 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
     -webkit-user-select: none;
   }
 
-  /* Escurece enquanto a próxima seção sobe sobre a hero (controlado pela rolagem) */
-  .hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 6;
-    background: var(--ink-deep);
-    opacity: calc(var(--dim, 0) * 0.75);
-    pointer-events: none;
-  }
-
   /* ——— Slides ——— */
   .hero__media {
     position: absolute;
     inset: 0;
-    will-change: transform;
   }
   .slide {
     position: absolute;
@@ -214,7 +195,6 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
     height: 100%;
     object-fit: cover;
     object-position: var(--pos, 50% 50%);
-    will-change: transform;
   }
   @media (max-width: 63.99rem) and (orientation: portrait) {
     .slide__img {
@@ -272,7 +252,6 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
     max-width: var(--max);
     margin-inline: auto;
     padding: 0 var(--gutter) clamp(1.25rem, 4svh, 2.25rem);
-    will-change: transform;
     pointer-events: none;
   }
   .hero__content a,
@@ -292,6 +271,14 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
     padding-left: 0.6em;
   }
 
+  /* Nome, categoria e contador trocam de dentro de uma máscara a cada slide. */
+  .hero__info .line,
+  .hero__count .line {
+    overflow: hidden;
+  }
+  .line__inner {
+    display: block;
+  }
   .hero__info {
     grid-area: info;
     justify-self: end;
@@ -309,31 +296,27 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
   }
   .hero__count-total {
     color: rgb(243 239 231 / 0.6);
-    font-size: 0.875rem;
+    font-size: var(--step--1);
   }
   .hero__name {
     display: inline-flex;
     align-items: baseline;
-    gap: 0.6rem;
     font-family: var(--font-serif);
     font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2.25rem);
     line-height: 1.15;
     text-decoration: none;
   }
-  .hero__name-arrow {
-    font-family: var(--font-sans);
-    font-size: 0.6em;
-    transition: transform 0.6s var(--ease-arch);
-  }
-  .hero__name:hover .hero__name-arrow {
-    transform: translate(4px, -4px);
+  .hero__name:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.25em;
   }
   .hero__meta {
-    font-size: 0.6875rem;
+    font-size: var(--step--1);
     font-weight: 500;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgb(243 239 231 / 0.78);
+    color: rgb(243 239 231 / 0.88);
   }
 
   /* Indicador: 01 ───── 05, um segmento por slide */
@@ -344,8 +327,8 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
     gap: 1rem;
     padding-top: clamp(0.5rem, 1.5svh, 1rem);
     border-top: 1px solid rgb(243 239 231 / 0.22);
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
+    font-size: var(--step--1);
+    letter-spacing: 0.06em;
   }
   .hero__bar-n {
     font-family: var(--font-serif);
@@ -386,8 +369,8 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
     border: 0;
     background: none;
     color: rgb(243 239 231 / 0.85);
-    font: 500 0.6875rem/1 var(--font-sans);
-    letter-spacing: 0.16em;
+    font: 500 var(--step--1)/1 var(--font-sans);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
     transition: color 0.3s;
@@ -404,39 +387,6 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
   }
   .hero__ctrl[data-go='1']:hover span {
     transform: translateX(3px);
-  }
-
-  /* ——— Entrada (depois do preloader, quando houver) ——— */
-  @media (prefers-reduced-motion: no-preference) {
-    :global(html.js) .slide.is-active .slide__img {
-      animation: hero-img 1.8s var(--ease-arch) var(--hero-delay, 0s) both;
-    }
-    :global(html.js) .hero-in {
-      animation: hero-line 1.15s var(--ease-arch) calc(var(--hero-delay, 0s) + var(--d)) both;
-    }
-    :global(html.js) .hero-fade {
-      animation: hero-fade 0.9s var(--ease-arch) calc(var(--hero-delay, 0s) + 0.6s) both;
-    }
-    :global(html.is-preloading) .hero {
-      --hero-delay: 1.05s;
-    }
-  }
-  @keyframes hero-img {
-    from {
-      transform: scale(1.1);
-      opacity: 0.4;
-    }
-  }
-  @keyframes hero-line {
-    from {
-      transform: translateY(110%);
-    }
-  }
-  @keyframes hero-fade {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
   }
 
   /* ——— Celular e tablet: tudo dentro da foto, empilhado na base ——— */
@@ -457,13 +407,10 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
     }
     .hero__count {
       grid-row: 1 / span 2;
-      font-size: 0.875rem;
+      font-size: var(--step--1);
     }
     .hero__name {
       font-size: 1.125rem;
-    }
-    .hero__meta {
-      font-size: 0.625rem;
     }
     .hero__title {
       font-size: clamp(2.5rem, 11.4vw, 4.25rem);
@@ -583,8 +530,6 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
       to.classList.add('is-active');
       from.setAttribute('aria-hidden', 'true');
       to.setAttribute('aria-hidden', 'false');
-      fromImg.style.animation = 'none';
-      toImg.style.animation = 'none';
 
       const done = () => {
         from.classList.remove('is-leaving');
@@ -714,9 +659,6 @@ const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
     window.addEventListener('scroll', () => hold('offscreen', window.scrollY > root.offsetHeight * 0.9), { passive: true });
     document.addEventListener('visibilitychange', () => hold('hidden', document.hidden));
 
-    // Começa depois do preloader (se houver).
-    if (document.documentElement.classList.contains('is-preloading')) {
-      window.addEventListener('lm:ready', startProgress, { once: true });
-    } else startProgress();
+    startProgress();
   }
 </script>

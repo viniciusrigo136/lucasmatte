@@ -1,6 +1,6 @@
 ---
 import Logo from './Logo.astro';
-import { site } from '../data/site';
+import { site, homeHref, sectionHref, contactHref } from '../data/site';
 
 interface Props {
   /** Começa sobre uma foto escura (textos claros) e passa a creme ao rolar. */
@@ -8,21 +8,17 @@ interface Props {
 }
 
 const { overlay = false } = Astro.props;
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const home = `${base}/`;
-// Números acompanham as seções da home.
 const nav = [
-  { href: `${home}#projetos`, label: 'Projetos', n: '02' },
-  { href: `${home}#sobre`, label: 'Sobre', n: '03' },
-  { href: `${home}#atuacao`, label: 'Atuação', n: '04' },
-  { href: `${home}#contato`, label: 'Contato', n: '05' },
+  { href: sectionHref('projetos'), label: 'Projetos' },
+  { href: sectionHref('sobre'), label: 'Sobre' },
+  { href: sectionHref('atuacao'), label: 'Atuação' },
+  { href: sectionHref('contato'), label: 'Contato' },
 ];
-const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
 ---
 
 <header class="site-header" data-compact="false" data-overlay={overlay ? 'true' : 'false'}>
   <div class="site-header__inner">
-    <a href={home} class="site-header__brand" aria-label="Lucas Matté Arquitetura, página inicial">
+    <a href={homeHref} class="site-header__brand" aria-label="Lucas Matté Arquitetura, página inicial">
       <Logo tone="both" width={168} eager class="site-header__logo" />
     </a>
 
@@ -30,10 +26,8 @@ const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
       <ul class="site-nav__list">
         {nav.map((item) => <li><a href={item.href} class="site-nav__link">{item.label}</a></li>)}
       </ul>
-      <a href={ctaHref} class="site-nav__cta" target="_blank" rel="noopener">
-        <span>Conversar sobre um projeto</span>
-        <span class="site-nav__arrow" aria-hidden="true">↗</span>
-        <span class="visually-hidden">(abre o WhatsApp em nova aba)</span>
+      <a href={contactHref} class="site-nav__cta" target="_blank" rel="noopener">
+        Conversar sobre um projeto<span class="visually-hidden"> (abre o WhatsApp em nova aba)</span>
       </a>
     </nav>
 
@@ -50,7 +44,6 @@ const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
           nav.map((item, i) => (
             <li style={`--i: ${i}`}>
               <a href={item.href} class="menu-mobile__link">
-                <span class="menu-mobile__n" aria-hidden="true">{item.n}</span>
                 <span class="menu-mobile__label">{item.label}</span>
               </a>
             </li>
@@ -59,12 +52,11 @@ const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
       </ul>
     </nav>
     <div class="menu-mobile__foot" style="--i: 4">
-      <a href={ctaHref} class="btn" target="_blank" rel="noopener">
-        Conversar sobre um projeto <span class="btn__arrow" aria-hidden="true">↗</span>
-        <span class="visually-hidden">(abre o WhatsApp em nova aba)</span>
+      <a href={contactHref} class="btn" target="_blank" rel="noopener">
+        Conversar sobre um projeto<span class="visually-hidden"> (abre o WhatsApp em nova aba)</span>
       </a>
       <a href={site.contact.instagram.url} class="text-link" target="_blank" rel="noopener">
-        Instagram {site.contact.instagram.handle}
+        Instagram {site.contact.instagram.handle}<span class="visually-hidden"> (abre em nova aba)</span>
       </a>
     </div>
   </div>
@@ -157,7 +149,7 @@ const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
     display: inline-flex;
     align-items: center;
     min-height: 2.75rem;
-    font-size: 0.875rem;
+    font-size: var(--step--1);
     font-weight: 500;
     letter-spacing: 0.02em;
     text-decoration: none;
@@ -184,25 +176,11 @@ const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
     gap: 0.6rem;
     min-height: 2.75rem;
     padding-block: 0.5rem;
-    font-size: 0.875rem;
+    font-size: var(--step--1);
     font-weight: 500;
     text-decoration: none;
     border-bottom: 1px solid currentColor;
   }
-  .site-nav__cta > span:first-child {
-    transition: transform 0.6s var(--ease-arch);
-  }
-  .site-nav__arrow {
-    display: inline-block;
-    transition: transform 0.6s var(--ease-arch);
-  }
-  .site-nav__cta:hover > span:first-child {
-    transform: translateX(-2px);
-  }
-  .site-nav__cta:hover .site-nav__arrow {
-    transform: translate(3px, -3px);
-  }
-
   .menu-toggle {
     display: none;
     align-items: center;
@@ -213,8 +191,8 @@ const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
     border: 0;
     background: none;
     color: inherit;
-    font: 500 0.75rem/1 var(--font-sans);
-    letter-spacing: 0.16em;
+    font: 500 var(--step--1)/1 var(--font-sans);
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     cursor: pointer;
   }
@@ -278,12 +256,6 @@ const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
   .menu-mobile__link:active .menu-mobile__label {
     transform: translateX(6px);
   }
-  .menu-mobile__n {
-    font-family: var(--font-sans);
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    color: var(--accent);
-  }
   .menu-mobile__foot {
     display: grid;
     gap: 1rem;
@@ -315,15 +287,6 @@ const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
     .menu-mobile.is-closing .menu-mobile__foot {
       animation: menu-item-out 0.3s ease-in both;
     }
-    /* Entrada da marca na carga da página */
-    .site-header__brand,
-    .site-nav,
-    .menu-toggle {
-      animation: header-in 1.1s var(--ease-arch) var(--header-delay, 0.15s) both;
-    }
-    :global(html.is-preloading) .site-header {
-      --header-delay: 1.1s;
-    }
   }
   @keyframes menu-in {
     from {
@@ -351,12 +314,6 @@ const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
     to {
       opacity: 0;
       transform: translateY(-16px);
-    }
-  }
-  @keyframes header-in {
-    from {
-      opacity: 0;
-      transform: translateY(-8px);
     }
   }
 
@@ -420,7 +377,6 @@ const ctaHref = site.contact.whatsapp ?? site.contact.instagram.url;
       }
       header.classList.toggle('is-open', open);
       document.documentElement.classList.toggle('menu-open', open);
-      window.dispatchEvent(new CustomEvent(open ? 'lm:lock' : 'lm:unlock'));
       if (open) panel.querySelector<HTMLElement>('a')?.focus();
       else if (returnFocus) toggle.focus();
     };

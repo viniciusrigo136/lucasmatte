@@ -1,12 +1,12 @@
 ---
 import { Picture } from 'astro:assets';
-import { projectImage, type ProjectData } from '../data/projetos';
+import { projectImage, projectMeta, type ProjectData } from '../data/projetos';
+import { projectHref } from '../data/site';
 
 export type ShowcaseLayout = 'left' | 'right' | 'full' | 'pair' | 'cinema';
 
 interface Props {
   project: ProjectData;
-  n: string;
   layout: ShowcaseLayout;
   /** Foto secundária (arquivo do próprio projeto) para composições em camadas. */
   secondary?: string;
@@ -14,9 +14,8 @@ interface Props {
   image?: string;
 }
 
-const { project, n, layout, secondary, image } = Astro.props;
-const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-const href = `${base}/projetos/${project.slug}/`;
+const { project, layout, secondary, image } = Astro.props;
+const href = projectHref(project.slug);
 const mainFile = image ?? project.cover;
 const cover = project.images.find((i) => i.file === mainFile) ?? project.images[0];
 // A foto compartilha nome de transição com a página do projeto apenas quando é a capa.
@@ -34,68 +33,45 @@ const mainWidths = layout === 'full' || layout === 'cinema' ? [800, 1280, 1920, 
 ---
 
 <article class:list={['sc', `sc--${layout}`]} aria-labelledby={`sc-${project.slug}`}>
-  <a href={href} class="sc__media" data-cursor="Ver projeto" tabindex="-1" aria-hidden="true">
-    <div class="sc__frame reveal-img" data-reveal-img>
-      <div class="sc__scale">
-        <div class="sc__drift" data-drift="8">
-        <Picture
-          src={projectImage(project.slug, cover.file)}
-          alt=""
-          widths={mainWidths}
-          sizes={mainSizes[layout]}
-          formats={['avif', 'webp']}
-          quality={72}
-          class="sc__img"
-          style={vtStyle}
-        />
-        </div>
-      </div>
+  <a href={href} class="sc__media" tabindex="-1" aria-hidden="true">
+    <div class="sc__frame cover">
+      <Picture
+        src={projectImage(project.slug, cover.file)}
+        alt=""
+        widths={mainWidths}
+        sizes={mainSizes[layout]}
+        formats={['avif', 'webp']}
+        quality={72}
+        class="sc__img"
+        style={vtStyle}
+      />
     </div>
   </a>
 
   {
     second && (
-      <a href={href} class="sc__second" data-cursor="Ver projeto" tabindex="-1" aria-hidden="true" data-drift="10">
-        <div class="sc__frame reveal-img" data-reveal-img>
-          <div class="sc__scale">
-            <Picture
+      <a href={href} class="sc__second" tabindex="-1" aria-hidden="true">
+        <div class="sc__frame cover">
+          <Picture
               src={projectImage(project.slug, second.file)}
               alt=""
               widths={[420, 640, 900]}
               sizes="(min-width: 64rem) 26vw, 60vw"
               formats={['avif', 'webp']}
               quality={70}
-              class="sc__img"
-            />
-          </div>
+            class="sc__img"
+          />
         </div>
       </a>
     )
   }
 
   <div class="sc__info">
-    <p class="sc__n" data-reveal>{n}</p>
-    <h3 id={`sc-${project.slug}`} class="sc__title" data-reveal-lines>
-      <span class="line"><span class="line__inner">{project.title}</span></span>
-    </h3>
-    <dl class="sc__meta" data-reveal>
-      <div>
-        <dt class="visually-hidden">Categoria</dt>
-        <dd>{project.category}</dd>
-      </div>
-      {
-        project.location && (
-          <div>
-            <dt class="visually-hidden">Cidade</dt>
-            <dd>{project.location}</dd>
-          </div>
-        )
-      }
-    </dl>
-    <p class="sc__summary" data-reveal>{project.summary}</p>
-    <a href={href} class="sc__link" data-reveal>
+    <h3 id={`sc-${project.slug}`} class="sc__title">{project.title}</h3>
+    <p class="sc__meta">{projectMeta(project)}</p>
+    <p class="sc__summary">{project.summary}</p>
+    <a href={href} class="sc__link">
       Ver projeto<span class="visually-hidden">: {project.title}</span>
-      <span class="sc__arrow" aria-hidden="true">↗</span>
     </a>
   </div>
 </article>
@@ -124,22 +100,6 @@ const mainWidths = layout === 'full' || layout === 'cinema' ? [800, 1280, 1920, 
     height: 100%;
     background: var(--border);
   }
-  .sc__scale {
-    width: 100%;
-    height: 100%;
-  }
-  .sc__frame :global(picture),
-  .sc__frame :global(img) {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  /* Parallax interno: a foto é um pouco maior que a moldura e desliza dentro dela */
-  .sc__drift {
-    height: 112%;
-    margin-top: -6%;
-    will-change: transform;
-  }
   .sc__frame :global(img) {
     transition: transform 1.2s var(--ease-arch);
   }
@@ -158,14 +118,6 @@ const mainWidths = layout === 'full' || layout === 'cinema' ? [800, 1280, 1920, 
     justify-items: start;
     gap: 1rem;
   }
-  .sc__n {
-    font-family: var(--font-serif);
-    font-size: 0.9375rem;
-    color: var(--accent);
-    padding-bottom: 0.75rem;
-    min-width: 4rem;
-    border-bottom: 1px solid currentColor;
-  }
   .sc__title {
     font-size: var(--step-3);
     line-height: 1.02;
@@ -173,23 +125,11 @@ const mainWidths = layout === 'full' || layout === 'cinema' ? [800, 1280, 1920, 
     transition: transform 0.9s var(--ease-arch);
   }
   .sc__meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 1.5rem;
-    margin: 0;
-    font-size: 0.6875rem;
+    font-size: var(--step--1);
     font-weight: 500;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-secondary);
-  }
-  .sc__meta dd {
-    margin: 0;
-  }
-  .sc__meta div + div::before {
-    content: '/';
-    margin-right: 1.5rem;
-    opacity: 0.5;
   }
   .sc__summary {
     max-width: 32ch;
@@ -198,21 +138,12 @@ const mainWidths = layout === 'full' || layout === 'cinema' ? [800, 1280, 1920, 
   .sc__link {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
     min-height: 2.75rem;
     margin-top: 0.25rem;
-    font-size: 0.875rem;
+    font-size: var(--step--1);
     font-weight: 500;
     text-decoration: none;
     border-bottom: 1px solid currentColor;
-  }
-  .sc__arrow {
-    display: inline-block;
-    transition: transform 0.7s var(--ease-arch);
-  }
-  .sc__link:hover .sc__arrow,
-  .sc:has(.sc__media:hover) .sc__arrow {
-    transform: translate(4px, -4px);
   }
 
   /* Toque: retorno visual rápido */
@@ -340,9 +271,6 @@ const mainWidths = layout === 'full' || layout === 'cinema' ? [800, 1280, 1920, 
   .sc--cinema .sc__info > * {
     pointer-events: auto;
   }
-  .sc--cinema .sc__n {
-    color: var(--sand);
-  }
   .sc--cinema .sc__title {
     font-size: var(--step-4);
   }
@@ -391,9 +319,6 @@ const mainWidths = layout === 'full' || layout === 'cinema' ? [800, 1280, 1920, 
     .sc--cinema .sc__meta,
     .sc--cinema .sc__summary {
       color: var(--text-secondary);
-    }
-    .sc--cinema .sc__n {
-      color: var(--accent);
     }
     .sc--cinema .sc__title {
       font-size: var(--step-3);

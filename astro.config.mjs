@@ -1,8 +1,12 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
-// Defina `site` quando o domínio oficial for confirmado (gera URLs absolutas de OG e canonical).
+// TODO: domínio oficial pendente. Quando confirmado, troque só esta linha
+// (ex.: 'https://www.lucasmatte.com.br'); canonical, OG e `site.domain` passam a usá-lo.
+const SITE_URL = undefined;
+
 export default defineConfig({
+  site: SITE_URL,
   image: {
     responsiveStyles: false,
   },

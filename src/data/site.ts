@@ -19,13 +19,22 @@ export const site = {
      * Verificado em 07/10/2026: abre a conta comercial "Lucas Matté".
      * Confirmar com o escritório se continua sendo o canal oficial.
      */
-    whatsapp: 'https://wa.me/message/PWH75L6EEZ3EE1',
+    whatsapp: 'https://wa.me/message/PWH75L6EEZ3EE1' as string | null,
     // Pendentes: não inventar.
     email: null as string | null,
     phone: null as string | null,
     address: null as string | null,
   },
 
-  /** Domínio oficial — pendente. Quando definido, configurar também `site` em astro.config.mjs. */
-  domain: null as string | null,
+  /** Domínio oficial. Vem de `site` em astro.config.mjs (único lugar a editar). */
+  domain: import.meta.env.SITE ?? null,
 };
+
+/** Caminho base do site, sem barra final (vazio quando o site fica na raiz). */
+export const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+export const homeHref = `${base}/`;
+export const sectionHref = (id: string) => `${homeHref}#${id}`;
+export const projectHref = (slug: string) => `${base}/projetos/${slug}/`;
+
+/** Destino de toda chamada para conversa: WhatsApp, com o Instagram como reserva. */
+export const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;

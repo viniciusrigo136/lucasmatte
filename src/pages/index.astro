@@ -6,7 +6,7 @@ import SectionHeading from '../components/SectionHeading.astro';
 import ProjectShowcase, { type ShowcaseLayout } from '../components/ProjectShowcase.astro';
 import AreasAtuacao from '../components/AreasAtuacao.astro';
 import { projetos, getProject } from '../data/projetos';
-import { site } from '../data/site';
+import { site, contactHref } from '../data/site';
 import retrato from '../assets/sobre/lucas-matte-retrato.jpg';
 import ogSrc from '../assets/projetos/igreja/dsc09501.jpg';
 
@@ -30,44 +30,22 @@ const all = [...featured, ...extras];
 const total = String(all.length).padStart(2, '0');
 const categories = [...new Set(all.map((s) => s.project.category))].join(', ');
 
-const manifesto = 'Arquitetura nasce do encontro entre espaço, matéria e pessoas.';
-
-const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
 ---
 
-<Base ogImage={og.src} overlayHeader preloader>
+<Base ogImage={og.src} overlayHeader>
   <Hero />
 
   <!-- Tudo depois da hero sobe por cima dela (a hero fica fixa e escurece) -->
   <div class="stage">
 
-  <!-- 01 — Filosofia: texto gigante atravessa o fundo enquanto a frase acende palavra a palavra -->
+  <!-- Filosofia -->
   <section id="manifesto" class="manifesto" aria-labelledby="manifesto-title">
-    <div class="manifesto__band" data-marquee aria-hidden="true">
-      <div class="manifesto__track" data-marquee-track>
-        <span>Espaço</span><span class="manifesto__sep">—</span><span>Matéria</span><span class="manifesto__sep">—</span><span>Pessoas</span><span class="manifesto__sep">—</span><span>Espaço</span>
-      </div>
-    </div>
-
     <div class="wrap manifesto__grid">
-      <p class="marker manifesto__marker" data-reveal>
-        <span class="marker__n">01</span>
-        <span class="marker__rule" aria-hidden="true"></span>
-        <span>Filosofia</span>
-      </p>
-      <h2 id="manifesto-title" class="manifesto__title" data-words>
-        {
-          manifesto.split(' ').map((w) => (
-            <>
-              <span class="word">{w}</span>{' '}
-            </>
-          ))
-        }
-      </h2>
+      <h2 id="manifesto-title" class="manifesto__title">Arquitetura nasce do encontro entre espaço, matéria e pessoas.</h2>
       <div class="manifesto__aside">
-        <span class="draw-line" data-reveal-line aria-hidden="true"></span>
-        <h3 class="manifesto__sub" data-reveal>Cada espaço começa com uma forma de viver.</h3>
-        <p class="manifesto__text" data-reveal data-delay="0.1">
+        <span class="manifesto__rule" aria-hidden="true"></span>
+        <h3 class="manifesto__sub">Cada espaço começa com uma forma de viver.</h3>
+        <p class="manifesto__text">
           Antes de materiais e formas, vem o jeito de usar a casa, o trabalho, o encontro. É a partir dessa rotina
           que estética e funcionalidade se ajustam, até o espaço fazer sentido para quem vive nele.
         </p>
@@ -75,51 +53,49 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
     </div>
   </section>
 
-  <!-- 02 — Projetos -->
+  <!-- Projetos -->
   <section id="projetos" class="projects" aria-labelledby="projetos-title">
     <div class="wrap projects__head">
-      <SectionHeading n="02" label="Projetos selecionados" lines={['Projetos']} id="projetos-title" />
-      <p class="projects__count" data-reveal>
+      <SectionHeading lines={['Projetos']} id="projetos-title" />
+      <p class="projects__count">
         <span>{total}</span> {categories}
       </p>
     </div>
 
     <div class="projects__list">
-      {all.map((s, i) => <ProjectShowcase project={s.project} n={String(i + 1).padStart(2, '0')} layout={s.layout} secondary={s.secondary} image={s.image} />)}
+      {all.map((s) => <ProjectShowcase project={s.project} layout={s.layout} secondary={s.secondary} image={s.image} />)}
     </div>
   </section>
 
-  <!-- 03 — Escritório -->
+  <!-- Escritório -->
   <section id="sobre" class="about" aria-labelledby="sobre-title">
     <p class="about__vertical" aria-hidden="true">Arquitetura</p>
     <div class="wrap about__grid">
       <div class="about__head">
-        <SectionHeading n="03" label="Escritório" lines={['Um olhar atento', 'ao que torna cada', 'projeto único.']} id="sobre-title" />
+        <SectionHeading lines={['Um olhar atento', 'ao que torna cada', 'projeto único.']} id="sobre-title" />
       </div>
       <figure class="about__portrait">
-        <div class="reveal-img about__frame" data-reveal-img>
-          <div data-drift="5">
-            <Picture
-              src={retrato}
-              alt="Retrato de Lucas Matté sentado diante de uma parede de vegetação, vestindo camiseta preta."
-              widths={[420, 640, 900, 1200]}
-              sizes="(min-width: 64rem) 36vw, 100vw"
-              formats={['avif', 'webp']}
-              quality={72}
-            />
-          </div>
+        <div class="about__frame cover">
+          <Picture
+            src={retrato}
+            alt="Retrato de Lucas Matté sentado diante de uma parede de vegetação, vestindo camiseta preta."
+            widths={[420, 640, 900, 1200]}
+            sizes="(min-width: 64rem) 36vw, 100vw"
+            formats={['avif', 'webp']}
+            quality={72}
+          />
         </div>
-        <figcaption class="about__caption" data-reveal>Lucas Matté</figcaption>
+        <figcaption class="about__caption">Lucas Matté</figcaption>
       </figure>
       <div class="about__text">
-        <p class="about__lead" data-reveal>
+        <p class="about__lead">
           Lucas Matté Arquitetura desenvolve projetos residenciais, comerciais e de interiores.
         </p>
-        <p data-reveal data-delay="0.08">
+        <p>
           Nos trabalhos reunidos aqui, madeira, pedra, vegetação e luz quente aparecem como matéria de projeto — de uma
           casa de campo em tijolo aparente a uma igreja desenhada pela iluminação.
         </p>
-        <a href={site.contact.instagram.url} class="text-link" target="_blank" rel="noopener" data-reveal data-delay="0.16">
+        <a href={site.contact.instagram.url} class="text-link" target="_blank" rel="noopener">
           Acompanhe no Instagram {site.contact.instagram.handle}
           <span class="visually-hidden">(abre em nova aba)</span>
         </a>
@@ -127,31 +103,24 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
     </div>
   </section>
 
-  <!-- 04 — Atuação -->
+  <!-- Atuação -->
   <AreasAtuacao />
 
-  <!-- 05 — Contato -->
+  <!-- Contato -->
   <section id="contato" class="cta" aria-labelledby="contato-title">
     <div class="wrap cta__inner">
-      <p class="marker cta__marker" data-reveal>
-        <span class="marker__n">05</span>
-        <span class="marker__rule" aria-hidden="true"></span>
-        <span>Tem um projeto em mente?</span>
-      </p>
-      <h2 id="contato-title" class="cta__title" data-reveal-lines>
-        <span class="line"><span class="line__inner">Vamos criar algo</span></span>
-        <span class="line"><span class="line__inner">que permaneça.</span></span>
+      <h2 id="contato-title" class="cta__title">
+        <span class="line">Vamos criar algo</span>
+        <span class="line">que permaneça.</span>
       </h2>
       <div class="cta__foot">
-        <p class="cta__text" data-reveal>
+        <p class="cta__text">
           Conte o que você imagina — uma casa, um ambiente, um negócio. A conversa começa pelo jeito como você quer viver
           ou usar o espaço.
         </p>
-        <div class="cta__actions" data-reveal data-delay="0.1">
-          <a href={contactHref} class="cta__link" target="_blank" rel="noopener">
-            <span class="cta__link-text">Iniciar conversa</span>
-            <span class="cta__link-arrow" aria-hidden="true">↗</span>
-            <span class="visually-hidden">pelo WhatsApp (abre em nova aba)</span>
+        <div class="cta__actions">
+          <a href={contactHref} class="link-lg" target="_blank" rel="noopener">
+            Iniciar conversa<span class="visually-hidden"> pelo WhatsApp (abre em nova aba)</span>
           </a>
           <a href={site.contact.instagram.url} class="text-link cta__ig" target="_blank" rel="noopener">
             Instagram {site.contact.instagram.handle}<span class="visually-hidden"> (abre em nova aba)</span>
@@ -178,48 +147,18 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
     padding-block: clamp(3rem, 8vw, 6rem) clamp(6rem, 16vw, 13rem);
     overflow: clip;
   }
-  .manifesto__band {
-    position: relative;
-    margin-bottom: clamp(3rem, 9vw, 8rem);
-    pointer-events: none;
-    user-select: none;
-  }
-  .manifesto__track {
-    display: flex;
-    gap: 0.35em;
-    white-space: nowrap;
-    font-family: var(--font-serif);
-    font-size: clamp(5rem, 17vw, 17rem);
-    line-height: 1;
-    letter-spacing: -0.04em;
-    color: transparent;
-    -webkit-text-stroke: 1px var(--sand);
-    will-change: transform;
-  }
-  .manifesto__sep {
-    -webkit-text-stroke: 0;
-    color: var(--border);
-  }
   .manifesto__grid {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: clamp(1rem, 2vw, 2rem);
     row-gap: clamp(2.5rem, 6vw, 5rem);
   }
-  .manifesto__marker {
-    grid-column: 1 / span 3;
-    align-self: start;
-    padding-top: 1.1rem;
-  }
   .manifesto__title {
-    grid-column: 4 / span 9;
+    grid-column: 1 / span 10;
     font-size: clamp(2.25rem, 1.2rem + 4.2vw, 6.25rem);
     line-height: 1.04;
     letter-spacing: -0.03em;
     text-wrap: balance;
-  }
-  .manifesto__title .word {
-    transition: opacity 0.2s linear;
   }
   .manifesto__aside {
     grid-column: 8 / span 4;
@@ -235,12 +174,10 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
     max-width: 40ch;
   }
 
-  /* Linha fina que se desenha da esquerda para a direita */
-  .draw-line {
+  .manifesto__rule {
     display: block;
     height: 1px;
     background: var(--text-primary);
-    transform-origin: left;
   }
 
   /* ——— Projetos ——— */
@@ -256,10 +193,10 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
     margin-bottom: clamp(4rem, 9vw, 8rem);
   }
   .projects__count {
-    max-width: 16rem;
-    font-size: 0.6875rem;
+    max-width: 18rem;
+    font-size: var(--step--1);
     font-weight: 500;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-secondary);
     text-align: right;
@@ -312,7 +249,7 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
     position: relative;
     z-index: 1;
   }
-  .about__head :global(.sh__title) {
+  .about__head :global(.sh) {
     font-size: clamp(2.5rem, 1rem + 5vw, 6.5rem);
   }
   .about__portrait {
@@ -324,17 +261,13 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
   .about__frame {
     aspect-ratio: 4 / 5;
   }
-  .about__frame > div {
-    height: 112%;
-    margin-top: -6%;
-  }
   .about__frame :global(img) {
     object-position: 50% 30%;
   }
   .about__caption {
     margin-top: 0.75rem;
-    font-size: 0.6875rem;
-    letter-spacing: 0.18em;
+    font-size: var(--step--1);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--text-secondary);
   }
@@ -366,11 +299,8 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
   }
   .cta__inner {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: clamp(2.5rem, 6vw, 5rem);
-  }
-  .cta__marker,
-  .cta__marker .marker__n {
-    color: var(--on-dark-muted);
   }
   .cta__title {
     font-size: clamp(3.25rem, 1rem + 9vw, 10rem);
@@ -401,44 +331,13 @@ const contactHref = site.contact.whatsapp ?? site.contact.instagram.url;
     justify-items: start;
     gap: 0.75rem;
   }
-  .cta__link {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 1rem;
-    font-family: var(--font-serif);
-    font-size: clamp(1.75rem, 1rem + 2.4vw, 3.25rem);
-    line-height: 1.1;
-    text-decoration: none;
-    padding-bottom: 0.5rem;
-    background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
-    transition: background-size 0.8s var(--ease-arch);
-  }
-  .cta__link-text {
-    display: inline-block;
-    transition: transform 0.8s var(--ease-arch);
-  }
-  .cta__link-arrow {
-    display: inline-block;
-    font-family: var(--font-sans);
-    font-size: 0.7em;
-    transition: transform 0.8s var(--ease-arch);
-  }
-  .cta__link:hover {
-    background-size: 30% 1px;
-  }
-  .cta__link:hover .cta__link-text {
-    transform: translateX(6px);
-  }
-  .cta__link:hover .cta__link-arrow {
-    transform: translate(12px, -8px);
-  }
   .cta__ig {
+    --link-line: var(--bronze-on-dark);
     color: var(--on-dark-muted);
   }
 
   /* ——— Telas médias e celular ——— */
   @media (max-width: 63.99rem) {
-    .manifesto__marker,
     .manifesto__title,
     .manifesto__aside {
       grid-column: 1 / -1;

@@ -148,6 +148,7 @@ export const projetos: ProjectData[] = [
     source: 'IGREJA LUCAS MATTÉ',
     images: [
       { file: 'dsc09501.jpg', alt: 'Fachada da igreja ao anoitecer, com as duas torres em pedra iluminadas e a cruz em destaque na empena central.' },
+      { file: 'dsc09507.jpg', alt: 'Volume central da igreja ao anoitecer, com a cruz escura contornada por luz embutida na empena e a porta em arco aberta para a nave iluminada, entre as torres de pedra.' },
       { file: 'dsc09454.jpg', alt: 'Empena central com a cruz e a abertura em arco ao entardecer.' },
       { file: 'dsc09514.jpg', alt: 'Torre revestida em pedra iluminada de baixo para cima ao anoitecer.' },
       { file: 'dji-0049.jpg', alt: 'Vista aérea noturna da igreja iluminada entre as árvores.' },
