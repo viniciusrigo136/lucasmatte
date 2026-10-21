@@ -6,8 +6,8 @@ import { projectHref } from '../data/site';
 /**
  * Bloco do projeto em destaque (featured) na seção Projetos: largura total, no tema
  * do projeto. A foto principal é a capa; as menores vêm de `featuredImages`.
- * O bloco também marca a linha do tempo da rolagem (--destaque) usada pela transição
- * de fundo da home (ver index.astro).
+ * Na home, com JS, o bloco perde o tema próprio e segue o da página, que escurece
+ * enquanto ele passa pelo meio da tela (ver index.astro).
  */
 interface Props {
   project: ProjectData;
@@ -79,7 +79,6 @@ const menores = (project.featuredImages ?? []).map(foto);
     padding-block: var(--space-block);
     background: var(--background);
     color: var(--text-primary);
-    view-timeline-name: --destaque;
   }
   /* Foto principal em 1–6 (borda do container); texto e miniaturas em 7–12, a um
      gutter de distância. As miniaturas descem até a base da foto principal. */

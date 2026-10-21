@@ -24,9 +24,14 @@ const nav = secoes;
         {nav.map((item) => <li><a href={item.href} class="site-nav__link">{item.label}</a></li>)}
       </ul>
       <a href={contactHref} class="site-nav__cta" target="_blank" rel="noopener">
-        Conversar sobre um projeto<span class="visually-hidden"> (abre o WhatsApp em nova aba)</span>
+        Conversar pelo WhatsApp<span class="visually-hidden"> (abre em nova aba)</span>
       </a>
     </nav>
+
+    <!-- Celular: a conversa fica à vista, fora do menu. -->
+    <a href={contactHref} class="site-header__whats" target="_blank" rel="noopener">
+      <span class="visually-hidden">Conversar pelo </span>WhatsApp<span class="visually-hidden"> (abre em nova aba)</span>
+    </a>
 
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu-mobile">
       <span class="menu-toggle__label">Menu</span>
@@ -50,7 +55,7 @@ const nav = secoes;
     </nav>
     <div class="menu-mobile__foot" style="--i: 4">
       <a href={contactHref} class="btn" target="_blank" rel="noopener">
-        Conversar sobre um projeto<span class="visually-hidden"> (abre o WhatsApp em nova aba)</span>
+        Conversar pelo WhatsApp<span class="visually-hidden"> (abre em nova aba)</span>
       </a>
       <a href={site.contact.instagram.url} class="text-link" target="_blank" rel="noopener">
         Instagram {site.contact.instagram.handle}<span class="visually-hidden"> (abre em nova aba)</span>
@@ -213,6 +218,21 @@ const nav = secoes;
     text-decoration: none;
     border-bottom: 1px solid currentColor;
   }
+  .site-header__whats {
+    display: none;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-left: auto;
+    font-size: var(--step--1);
+    font-weight: 500;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.4em;
+  }
+  /* Com o menu aberto, o painel já tem o botão de conversa. */
+  .site-header.is-open .site-header__whats {
+    visibility: hidden;
+  }
   .menu-toggle {
     display: none;
     align-items: center;
@@ -353,8 +373,23 @@ const nav = secoes;
     .site-nav {
       display: none;
     }
-    .menu-toggle {
+    .menu-toggle,
+    .site-header__whats {
       display: inline-flex;
+    }
+    .site-header__inner {
+      gap: 1.25rem;
+    }
+  }
+  /* Abaixo de 360px não cabem logo, WhatsApp e "Menu": a palavra fica só para leitor de tela. */
+  @media (max-width: 22.49rem) {
+    .menu-toggle__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
     }
   }
 </style>

@@ -46,7 +46,7 @@ const demais = projetos.filter((p) => !p.featured);
   </section>
 
   <!-- Projetos: destaque (Decorare) + grade. A passagem pelo destaque é o segundo
-       momento de movimento do site: o fundo da página vai do marfim ao preto e volta. -->
+       momento de movimento do site: a página vai do marfim ao preto e volta. -->
   <section id="projetos" class="projects" aria-labelledby="projetos-title">
     <div class="wrap projects__head">
       <SectionHeading lines={['Projetos']} id="projetos-title" class="projects__title" />
@@ -55,6 +55,12 @@ const demais = projetos.filter((p) => !p.featured);
     <div class="projects__grade">
       <ProjetosGrade projects={demais} />
     </div>
+    <p class="wrap projects__convite">
+      Tem um projeto em mente?
+      <a href={contactHref} class="text-link" target="_blank" rel="noopener">
+        Conversar pelo WhatsApp<span class="visually-hidden"> (abre em nova aba)</span>
+      </a>
+    </p>
   </section>
 
   <!-- Escritório -->
@@ -112,7 +118,7 @@ const demais = projetos.filter((p) => !p.featured);
         </p>
         <div class="cta__actions">
           <a href={contactHref} class="link-lg" target="_blank" rel="noopener">
-            Iniciar conversa pelo WhatsApp<span class="visually-hidden"> (abre em nova aba)</span>
+            <span class="link-lg__texto">Conversar pelo WhatsApp</span><span class="visually-hidden"> (abre em nova aba)</span>
           </a>
           <ul class="cta__secundarios">
             <li>
@@ -183,6 +189,20 @@ const demais = projetos.filter((p) => !p.featured);
   .projects__grade {
     margin-top: var(--space-block);
   }
+  /* Convite discreto ao fim do portfólio: a conversa sem precisar descer até o contato. */
+  .projects__convite {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 0.75rem;
+    margin-top: var(--space-block);
+    font-family: var(--font-serif);
+    font-size: var(--step-1);
+    color: var(--text-secondary);
+  }
+  .projects__convite .text-link {
+    color: var(--text-primary);
+  }
 
   /* ——— Escritório ———
      Mesmo fundo do site; a foto alinha o topo com o topo do título. */
@@ -250,12 +270,16 @@ const demais = projetos.filter((p) => !p.featured);
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-block);
   }
+  /* Cada linha do título fica inteira em qualquer largura. O tamanho segue a largura do
+     container (cqw): "que permaneça." ocupa 7,6em e, somada ao recuo de duas colunas
+     (≈ 1/6 da largura), cabe com folga em 10,5cqw; "Vamos criar algo" ocupa 7,85em. */
   .cta__title {
-    /* Mínimo de 2.5rem: em 320px, "permaneça." com o recuo de uma coluna cabe na linha. */
-    font-size: clamp(2.5rem, 1rem + 9vw, 10rem);
+    font-size: min(10rem, 10.5cqw);
     line-height: 0.96;
     letter-spacing: -0.04em;
-    text-wrap: initial;
+  }
+  .cta__title .line {
+    white-space: nowrap;
   }
   /* A segunda linha recua exatamente duas colunas da grade. */
   .cta__title .line:nth-child(2) {
@@ -308,127 +332,59 @@ const demais = projetos.filter((p) => !p.featured);
     .about__portrait {
       width: min(100%, 30rem);
     }
+    /* Recuo de uma coluna (≈ 1/12 da largura): cabe em 11,5cqw. */
+    .cta__title {
+      font-size: 11.5cqw;
+    }
     .cta__title .line:nth-child(2) {
       padding-left: calc(var(--col) + var(--grid-gap));
     }
   }
 
   /* ——— Passagem pelo destaque: marfim → preto → marfim ———
-     Com suporte a scroll-driven animations, a cor segue a rolagem na linha do tempo do
-     bloco (--destaque, em ProjetoDestaque.astro). A gradação acontece só em trechos em
-     que, fora do bloco preto, aparecem fotos ou o título grande:
-       entrada: enquanto o topo do bloco vai de 15% da tela até o topo (o espaço acima
-                de "Projetos" mantém a seção anterior fora da tela nesse trecho);
-       saída:   enquanto a base do bloco sobe de 100% a 70% da tela (abaixo dele, só o
-                espaço e o começo da primeira foto da grade).
-     O título troca de grafite para marfim no ponto em que as duas cores empatam
-     (3,5:1; o mínimo para texto grande é 3:1).
-     Sem suporte, ou com movimento reduzido, o script abaixo liga .decorare-ativo. */
-  @supports (animation-timeline: view()) {
-    @media (prefers-reduced-motion: no-preference) {
-      :global(body) {
-        timeline-scope: --destaque;
-        animation: fundo-destaque linear both;
-        animation-timeline: --destaque;
-        animation-range: entry 0% exit 30%;
-      }
-      .projects :global(.projects__title) {
-        /* step-end: a cor do título salta entre os keyframes, sem tons intermediários */
-        animation: titulo-destaque step-end both;
-        animation-timeline: --destaque;
-        animation-range: entry 0% exit 30%;
-      }
-      :global(.site-header[data-hero-logo][data-compact='true']:not(.is-open)) {
-        animation: header-destaque linear both;
-        animation-timeline: --destaque;
-        animation-range: entry 0% exit 30%;
-      }
+     Enquanto o bloco do Decorare atravessa o meio da tela, a página inteira entra no
+     tema escuro (body[data-theme='dark'], ligado pelo script abaixo): o fundo de tudo o
+     que está visível vai ao preto em 0,8s e todos os textos trocam de cor de uma vez, no
+     meio da gradação. Nenhum texto fica parado sobre um tom intermediário, e o bloco
+     não tem fundo próprio, então não há faixa de outra cor ao redor dele.
+     As variáveis de cor são registradas (@property, em global.css) para poderem ser
+     animadas. Com movimento reduzido, a troca é imediata. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html.passagem-destaque body) {
+      transition:
+        --background 0.8s ease,
+        --surface 0.8s ease,
+        background-color 0.8s ease,
+        --text-primary 0s linear 0.4s,
+        --text-secondary 0s linear 0.4s,
+        --border 0s linear 0.4s;
     }
-  }
-  @keyframes fundo-destaque {
-    entry 0%,
-    entry 85% {
-      background-color: var(--background);
+    :global(.site-header[data-hero-logo]) {
+      transition: background-color 0.8s ease;
     }
-    entry 100%,
-    exit 0% {
-      background-color: var(--decorare-black);
-    }
-    exit 30% {
-      background-color: var(--background);
-    }
-  }
-  @keyframes titulo-destaque {
-    entry 0% {
-      color: var(--text-primary);
-    }
-    entry 92% {
-      color: var(--on-primary);
-    }
-    exit 16%,
-    exit 30% {
-      color: var(--text-primary);
-    }
-  }
-  @keyframes header-destaque {
-    entry 0%,
-    entry 85% {
-      background-color: var(--primary);
-    }
-    entry 100%,
-    exit 0% {
-      background-color: var(--decorare-black);
-    }
-    exit 30% {
-      background-color: var(--primary);
-    }
-  }
-
-  /* Alternativa por classe (sem scroll-driven animations ou com movimento reduzido). */
-  :global(html.decorare-ativo body) {
-    background-color: var(--decorare-black);
-  }
-  :global(html.decorare-ativo) .projects :global(.projects__title) {
-    color: var(--on-primary);
   }
   :global(html.decorare-ativo .site-header[data-hero-logo][data-compact='true']:not(.is-open)) {
     background-color: var(--decorare-black);
   }
-  @media (prefers-reduced-motion: no-preference) {
-    :global(body),
-    :global(.site-header[data-hero-logo]) {
-      transition: background-color 0.8s ease;
-    }
-    /* O título troca de cor de uma vez, no meio da gradação do fundo. */
-    .projects :global(.projects__title) {
-      transition: color 0s linear 0.37s;
-    }
-  }
 </style>
 
 <script>
-  // Alternativa à animação por rolagem: liga .decorare-ativo só enquanto o bloco de
-  // destaque cobre a tela de 15% a 85% da altura (assim, durante a troca de cor, fora
-  // dele aparecem apenas o título grande ou o começo de uma foto).
-  const destaque = document.querySelector<HTMLElement>('[data-destaque]');
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const porRolagem = CSS.supports('animation-timeline: view()') && !reduce;
-  if (destaque && !porRolagem) {
-    let pendente = false;
-    const atualiza = () => {
-      const r = destaque.getBoundingClientRect();
-      const h = window.innerHeight;
-      document.documentElement.classList.toggle('decorare-ativo', r.top <= h * 0.15 && r.bottom >= h * 0.85);
-      pendente = false;
-    };
-    const agenda = () => {
-      if (!pendente) {
-        pendente = true;
-        requestAnimationFrame(atualiza);
-      }
-    };
-    window.addEventListener('scroll', agenda, { passive: true });
-    window.addEventListener('resize', agenda);
-    atualiza();
+  // Sem JS, o bloco do Decorare já nasce preto (data-theme do próprio bloco). Com JS, ele
+  // passa a seguir o tema da página, que fica escuro enquanto o bloco cruza a faixa
+  // central da tela (de 45% a 55% da altura).
+  const destaque = document.querySelector<HTMLElement>('[data-destaque][data-theme="dark"]');
+  if (destaque && 'IntersectionObserver' in window) {
+    const html = document.documentElement;
+    destaque.removeAttribute('data-theme');
+    html.classList.add('passagem-destaque');
+    new IntersectionObserver(
+      ([entrada]) => {
+        const ativo = entrada.isIntersecting;
+        if (ativo) document.body.dataset.theme = 'dark';
+        else delete document.body.dataset.theme;
+        html.classList.toggle('decorare-ativo', ativo);
+      },
+      { rootMargin: '-45% 0px -45% 0px' },
+    ).observe(destaque);
   }
 </script>

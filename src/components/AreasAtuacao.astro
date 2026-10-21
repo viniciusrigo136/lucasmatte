@@ -6,8 +6,9 @@ import { areas as definicoes } from '../data/atuacao';
 
 /**
  * Áreas de atuação. No desktop, a lista fica à esquerda e a foto da área ativa à
- * direita: cada área é um botão, e a foto troca ao passar o mouse, focar ou tocar.
- * No celular, cada área mostra a própria foto logo abaixo do texto.
+ * direita: cada área com foto é um botão, e a foto troca ao passar o mouse, focar ou
+ * tocar. Área sem foto é só título e texto (não controla nada). No celular não há o
+ * que trocar: cada área mostra a própria foto abaixo do texto e o título é texto simples.
  */
 const areas = definicoes.map((a, i) => {
   if (!a.foto) return { ...a, i, foto: undefined };
@@ -24,6 +25,8 @@ const areas = definicoes.map((a, i) => {
     foto: { src: projectImage(project.slug, img.file), alt: img.alt, legenda: `${project.title} · ${projectMeta(project)}` },
   };
 });
+// A área ativa ao carregar: a primeira que tem foto.
+const primeira = areas.find((a) => a.foto)?.i ?? -1;
 ---
 
 <section id="atuacao" class="areas" aria-labelledby="atuacao-title" data-areas>
@@ -33,11 +36,15 @@ const areas = definicoes.map((a, i) => {
       <ul class="areas__itens">
         {
           areas.map((a) => (
-            <li class:list={['area', { 'is-ativa': a.i === 0 }]} data-area={a.i}>
+            <li class:list={['area', { 'is-ativa': a.i === primeira }]} data-area={a.foto ? a.i : undefined}>
               <h3 class="area__titulo">
-                <button type="button" class="area__botao" aria-pressed={a.i === 0 ? 'true' : 'false'} aria-controls="areas-palco">
-                  {a.categoria}
-                </button>
+                {/* Um dos dois aparece, conforme a largura (display: none tira o outro do leitor de tela). */}
+                {a.foto && (
+                  <button type="button" class="area__botao" aria-pressed={a.i === primeira ? 'true' : 'false'} aria-controls="areas-palco">
+                    {a.categoria}
+                  </button>
+                )}
+                <span class:list={['area__nome', { 'area__nome--movel': a.foto }]}>{a.categoria}</span>
               </h3>
               <p class="area__texto">{a.texto}</p>
               {a.foto && (
@@ -65,10 +72,10 @@ const areas = definicoes.map((a, i) => {
     <!-- Desktop: a foto da área ativa. Só a ativa fica visível e no leitor de tela. -->
     <div class="areas__palco" id="areas-palco">
       {
-        areas.map((a) => (
-          <figure class:list={['palco', { 'is-ativa': a.i === 0 }]} data-palco={a.i}>
-            {a.foto ? (
-              <>
+        areas.map(
+          (a) =>
+            a.foto && (
+              <figure class:list={['palco', { 'is-ativa': a.i === primeira }]} data-palco={a.i}>
                 <span class="palco__moldura cover">
                   <Picture
                     src={a.foto.src}
@@ -81,14 +88,9 @@ const areas = definicoes.map((a, i) => {
                   />
                 </span>
                 <figcaption>{a.foto.legenda}</figcaption>
-              </>
-            ) : (
-              <span class="palco__moldura palco__moldura--texto" aria-hidden="true">
-                <span>{a.categoria}</span>
-              </span>
-            )}
-          </figure>
-        ))
+              </figure>
+            ),
+        )
       }
     </div>
   </div>
@@ -123,7 +125,8 @@ const areas = definicoes.map((a, i) => {
     margin: 0;
     font: inherit;
   }
-  .area__botao {
+  .area__botao,
+  .area__nome {
     display: block;
     width: 100%;
     min-height: 2.75rem;
@@ -136,7 +139,13 @@ const areas = definicoes.map((a, i) => {
     line-height: 1.05;
     letter-spacing: -0.02em;
     text-align: left;
+  }
+  .area__botao {
     cursor: pointer;
+  }
+  /* No desktop, o nome em texto só aparece nas áreas sem foto. */
+  .area__nome--movel {
+    display: none;
   }
   .area__texto {
     max-width: 40ch;
@@ -181,14 +190,6 @@ const areas = definicoes.map((a, i) => {
     aspect-ratio: 4 / 5;
     background: var(--border);
   }
-  .palco__moldura--texto {
-    display: grid;
-    place-items: center;
-    background: var(--primary);
-    color: var(--on-primary);
-    font-family: var(--font-serif);
-    font-size: var(--step-3);
-  }
   .palco figcaption,
   .area__foto-movel figcaption {
     margin-top: 0.75rem;
@@ -214,12 +215,12 @@ const areas = definicoes.map((a, i) => {
     .area__moldura {
       aspect-ratio: 4 / 3;
     }
-    /* No celular não há foto para trocar: o título não precisa de destaque. */
-    .area.is-ativa .area__botao {
-      text-decoration: none;
-    }
+    /* No celular não há foto para trocar: o título é texto, sem botão. */
     .area__botao {
-      cursor: default;
+      display: none;
+    }
+    .area__nome--movel {
+      display: block;
     }
   }
 </style>
@@ -227,6 +228,7 @@ const areas = definicoes.map((a, i) => {
 <script>
   const secao = document.querySelector<HTMLElement>('[data-areas]');
   if (secao) {
+    // Só as áreas com foto (data-area) controlam o palco; a ordem coincide com data-palco.
     const itens = Array.from(secao.querySelectorAll<HTMLElement>('[data-area]'));
     const palcos = Array.from(secao.querySelectorAll<HTMLElement>('[data-palco]'));
     const ativa = (i: number) => {

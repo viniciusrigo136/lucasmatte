@@ -56,6 +56,34 @@
   --step-5: clamp(2.6rem, 10vw, 10rem);
 }
 
+/* Cores que a home anima na passagem pelo Decorare (index.astro). Registradas como
+   <color> para a transição interpolar o valor em vez de saltar. */
+@property --background {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #f3efe7;
+}
+@property --surface {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #faf8f4;
+}
+@property --text-primary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #302d29;
+}
+@property --text-secondary {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #68615a;
+}
+@property --border {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #ded5c8;
+}
+
 /* Tema escuro (Decorare): o bloco de destaque na home e a página /projetos/decorare.
    Mesmos nomes de variável, então os componentes não precisam saber do tema. */
 [data-theme='dark'] {
@@ -244,21 +272,25 @@ a {
   text-decoration-color: currentColor;
 }
 
-/* Link grande de contato (chamada final da home e da página de projeto). */
+/* Link grande de contato (chamada final da home e da página de projeto). O texto vai
+   num <span> inline para o sublinhado acompanhar cada linha quando o rótulo quebra. */
 .link-lg {
-  display: inline-flex;
-  /* 44px de área de toque; o texto fica junto do sublinhado, na base. */
-  align-items: flex-end;
+  display: block;
+  /* 44px de área de toque, mesmo com uma linha só. */
   min-height: 2.75rem;
   font-family: var(--font-serif);
   font-size: clamp(1.75rem, 1rem + 2.4vw, 3.25rem);
-  line-height: 1.1;
+  line-height: 1.3;
   text-decoration: none;
-  padding-bottom: 0.5rem;
+}
+.link-lg__texto {
+  padding-bottom: 0.2em;
   background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
   transition: background-size 0.8s var(--ease-arch);
 }
-.link-lg:hover {
+.link-lg:hover .link-lg__texto {
   background-size: 30% 1px;
 }
 
