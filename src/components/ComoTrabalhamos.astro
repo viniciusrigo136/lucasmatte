@@ -1,0 +1,61 @@
+---
+import SectionHeading from './SectionHeading.astro';
+import { site } from '../data/site';
+
+/** Etapas do trabalho, numeradas (sequência real). Sem etapas em site.ts, nada é renderizado. */
+const etapas = site.etapas;
+---
+
+{
+  etapas.length > 0 && (
+    <section class="etapas" aria-labelledby="etapas-title">
+      <div class="wrap">
+        <SectionHeading lines={['Como trabalhamos']} id="etapas-title" class="etapas__titulo" />
+        <ol class="etapas__lista">
+          {etapas.map((e) => (
+            <li class="etapa">
+              <h3 class="etapa__titulo">{e.titulo}</h3>
+              <p class="etapa__texto">{e.texto}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .etapas {
+    padding-block: clamp(5rem, 12vw, 10rem);
+  }
+  .etapas :global(.etapas__titulo) {
+    margin-bottom: clamp(2.5rem, 6vw, 4.5rem);
+    font-size: var(--step-3);
+  }
+  .etapas__lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 2.5rem clamp(1rem, 3vw, 3rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: etapa;
+  }
+  .etapa {
+    counter-increment: etapa;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+  .etapa__titulo {
+    font-size: var(--step-2);
+  }
+  .etapa__titulo::before {
+    content: counter(etapa) ' ';
+    color: var(--bronze-on-light);
+  }
+  .etapa__texto {
+    margin-top: 0.75rem;
+    max-width: 36ch;
+    color: var(--text-secondary);
+  }
+</style>

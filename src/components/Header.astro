@@ -1,6 +1,6 @@
 ---
 import Logo from './Logo.astro';
-import { site, homeHref, sectionHref, contactHref } from '../data/site';
+import { site, homeHref, secoes, contactHref } from '../data/site';
 
 interface Props {
   /** Começa sobre uma foto escura (textos claros) e passa a creme ao rolar. */
@@ -10,12 +10,7 @@ interface Props {
 }
 
 const { overlay = false, heroLogo = false } = Astro.props;
-const nav = [
-  { href: sectionHref('projetos'), label: 'Projetos' },
-  { href: sectionHref('sobre'), label: 'Sobre' },
-  { href: sectionHref('atuacao'), label: 'Atuação' },
-  { href: sectionHref('contato'), label: 'Contato' },
-];
+const nav = secoes;
 ---
 
 <header class="site-header" data-compact="false" data-overlay={overlay ? 'true' : 'false'} data-hero-logo={heroLogo ? 'true' : undefined}>

@@ -167,7 +167,7 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
         <div><dt>Fotografias</dt><dd>{all.length}</dd></div>
       </dl>
       <a href={contactHref} class="link-lg case-details__link" target="_blank" rel="noopener">
-        Iniciar conversa<span class="visually-hidden"> pelo WhatsApp (abre em nova aba)</span>
+        Iniciar conversa pelo WhatsApp<span class="visually-hidden"> (abre em nova aba)</span>
       </a>
     </section>
 
@@ -288,8 +288,7 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
     border-top: 1px solid rgb(243 239 231 / 0.3);
   }
   .case-hero__meta dt {
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: rgb(243 239 231 / 0.82);
   }
   .case-hero__meta dd {
@@ -443,8 +442,7 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
   }
   .case-details__list dt {
     font-size: var(--step--1);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--text-secondary);
   }
   .case-details__list dd {
@@ -487,8 +485,7 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
   .next__label,
   .next__meta {
     font-size: var(--step--1);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: rgb(243 239 231 / 0.78);
   }
   .next__title {
@@ -538,8 +535,7 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
   }
   .lightbox__count {
     font-size: var(--step--1);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    letter-spacing: 0.02em;
     color: var(--on-dark-muted);
   }
   .lightbox__figure {
@@ -649,7 +645,10 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
       img.src = item.dataset.full!;
       img.alt = item.dataset.alt!;
       caption.textContent = item.dataset.alt!;
-      count.textContent = `Foto ${current + 1} de ${items.length}`;
+      count.textContent = `${current + 1} de ${items.length}`;
+      // Pré-carrega a próxima foto para a navegação pelas setas não piscar.
+      const proxima = items[(current + 1) % items.length];
+      if (proxima) new Image().src = proxima.dataset.full!;
     };
 
     items.forEach((item, i) =>
@@ -664,9 +663,18 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
     dialog.querySelector('[data-close]')!.addEventListener('click', () => dialog.close());
     dialog.querySelector('[data-prev]')!.addEventListener('click', () => show(current - 1));
     dialog.querySelector('[data-next]')!.addEventListener('click', () => show(current + 1));
+    // Setas navegam; Tab circula só entre os botões do diálogo (o <dialog> nativo deixa
+    // o foco escapar para a interface do navegador).
+    const botoes = Array.from(dialog.querySelectorAll<HTMLButtonElement>('button'));
     dialog.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowLeft') show(current - 1);
       if (e.key === 'ArrowRight') show(current + 1);
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const i = botoes.indexOf(document.activeElement as HTMLButtonElement);
+        const proximo = (i + (e.shiftKey ? -1 : 1) + botoes.length) % botoes.length;
+        botoes[proximo].focus();
+      }
     });
     dialog.addEventListener('click', (e) => {
       if (e.target === dialog || e.target === dialog.querySelector('.lightbox__figure')) dialog.close();

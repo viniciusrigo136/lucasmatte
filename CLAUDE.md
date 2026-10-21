@@ -6,7 +6,7 @@ Referência para todas as fases da reformulação do site. Todo o conteúdo do s
 
 O projeto é **Astro 5** (não Vite + React): páginas e componentes `.astro`, TypeScript estrito, CSS escopado por componente, sem Tailwind e sem React. Antes de propor uma lib, confirme em `package.json` o que já está instalado (`motion`, `sharp`, `@fontsource/*`).
 
-- Dados dos projetos: `src/data/projetos.ts`, a única fonte de verdade (título, categoria, cidade, textos, `alt` de cada foto, capa). Dados do escritório e contatos: `src/data/site.ts`; campos `null` ficam fora da página até serem confirmados.
+- Dados dos projetos: `src/data/projetos.ts`, a única fonte de verdade (título, categoria, cidade, textos, `alt` de cada foto, capa). Dados do escritório, contatos, depoimentos e etapas: `src/data/site.ts`; campos `null` ou listas vazias ficam fora da página até serem confirmados. Áreas de atuação e suas fotos: `src/data/atuacao.ts` (o build confere se a foto é de um projeto da mesma categoria).
 - Fotos: `src/assets/projetos/<slug>/`, carregadas por `projectImage(slug, file)` e otimizadas pelo `astro:assets` (`<Picture>` / `getImage`). Logo: SVG em `src/assets/logo/` (fonte do desenho, usada inline pelo `LogoHero` do hero) e PNG em `src/assets/marca/` (header e rodapé), nas versões grafite e marfim.
 - Página de projeto: `src/pages/projetos/[slug].astro`, gerada a partir de `projetos.ts`.
 - Validação antes de cada commit: `npm run check` (`astro check`) e `npm run build`.

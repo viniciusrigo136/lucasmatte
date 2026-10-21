@@ -1,414 +1,247 @@
 ---
 import { Picture } from 'astro:assets';
 import SectionHeading from './SectionHeading.astro';
-import { getProject, projectImage } from '../data/projetos';
+import { getProject, projectImage, projectMeta } from '../data/projetos';
+import { areas as definicoes } from '../data/atuacao';
 
 /**
- * Cada área mostra uma foto de um projeto real. A legenda informa sempre o projeto
- * e a categoria verdadeira dele (não há projeto classificado como Comercial nos dados).
+ * Áreas de atuação. No desktop, a lista fica à esquerda e a foto da área ativa à
+ * direita: cada área é um botão, e a foto troca ao passar o mouse, focar ou tocar.
+ * No celular, cada área mostra a própria foto logo abaixo do texto.
  */
-const areas = [
-  {
-    title: 'Residencial',
-    text: 'Espaços pensados para acolher a rotina e expressar a identidade de quem mora.',
-    slug: 'casa-de-campo',
-    file: 'dsc09290.jpg',
-  },
-  {
-    title: 'Comercial',
-    text: 'Ambientes que conectam funcionalidade, experiência e identidade do negócio.',
-    slug: 'decorare',
-    file: 'dsc08742.jpg',
-  },
-  {
-    title: 'Interiores',
-    text: 'Materiais, iluminação e composição em diálogo com a forma de usar cada ambiente.',
-    slug: 'casa-nova-erechim',
-    file: 'dsc07014.jpg',
-  },
-].map((a) => {
-  const project = getProject(a.slug)!;
-  const img = project.images.find((i) => i.file === a.file)!;
-  return { ...a, src: projectImage(a.slug, a.file), alt: img.alt, caption: `${project.title} — ${project.category}` };
+const areas = definicoes.map((a, i) => {
+  if (!a.foto) return { ...a, i, foto: undefined };
+  const project = getProject(a.foto.slug);
+  if (!project) throw new Error(`Atuação: projeto "${a.foto.slug}" não existe.`);
+  if (project.category !== a.categoria) {
+    throw new Error(`Atuação: a foto de "${a.categoria}" vem de "${project.title}", que é ${project.category}.`);
+  }
+  const img = project.images.find((im) => im.file === a.foto!.file);
+  if (!img) throw new Error(`Atuação: foto ${a.foto.file} não está em ${project.slug}.`);
+  return {
+    ...a,
+    i,
+    foto: { src: projectImage(project.slug, img.file), alt: img.alt, legenda: `${project.title} · ${projectMeta(project)}` },
+  };
 });
 ---
 
 <section id="atuacao" class="areas" aria-labelledby="atuacao-title" data-areas>
-  <div class="wrap areas__grid">
-    <div class="areas__side">
+  <div class="wrap areas__grade">
+    <div class="areas__lista">
       <SectionHeading lines={['Áreas de', 'atuação']} id="atuacao-title" />
-
-      <!-- Desktop: foto lateral que troca conforme a área em foco -->
-      <figure class="areas__stage" aria-hidden="true">
-        <div class="areas__stack">
-          <div>
-            {
-              areas.map((a, i) => (
-                <div class:list={['areas__shot', 'cover', { 'is-active': i === 0 }]} data-shot={i}>
-                  <Picture
-                    src={a.src}
-                    alt=""
-                    widths={[400, 640, 900]}
-                    sizes="(min-width: 64rem) 28vw, 1px"
-                    formats={['avif', 'webp']}
-                    quality={70}
-                  />
-                </div>
-              ))
-            }
-          </div>
-        </div>
-        <figcaption class="areas__caption">
-          {areas.map((a, i) => <span class:list={{ 'is-active': i === 0 }} data-cap={i}>{a.caption}</span>)}
-        </figcaption>
-      </figure>
-    </div>
-
-    <ol class="areas__list">
-      {
-        areas.map((a, i) => (
-          <li class:list={['area', { 'is-open': i === 0, 'is-active': i === 0 }]} data-area={i}>
-            <span class="area__rule" aria-hidden="true" />
-            <h3 class="area__heading">
-              <button
-                type="button"
-                class="area__head"
-                aria-expanded={i === 0 ? 'true' : 'false'}
-                aria-controls={`area-panel-${i}`}
-                id={`area-head-${i}`}
-              >
-                <span class="area__title">{a.title}</span>
-                <span class="area__toggle" aria-hidden="true" />
-              </button>
-            </h3>
-            <div class="area__panel" id={`area-panel-${i}`} role="region" aria-labelledby={`area-head-${i}`}>
-              <div class="area__panel-inner">
-                <p class="area__text">{a.text}</p>
-                <figure class="area__media">
-                  <div class="area__frame cover">
+      <ul class="areas__itens">
+        {
+          areas.map((a) => (
+            <li class:list={['area', { 'is-ativa': a.i === 0 }]} data-area={a.i}>
+              <h3 class="area__titulo">
+                <button type="button" class="area__botao" aria-pressed={a.i === 0 ? 'true' : 'false'} aria-controls="areas-palco">
+                  {a.categoria}
+                </button>
+              </h3>
+              <p class="area__texto">{a.texto}</p>
+              {a.foto && (
+                <figure class="area__foto-movel">
+                  <span class="area__moldura cover">
                     <Picture
-                      src={a.src}
-                      alt={a.alt}
-                      widths={[480, 750, 1000]}
+                      src={a.foto.src}
+                      alt={a.foto.alt}
+                      widths={[480, 720, 960]}
                       sizes="(max-width: 63.99rem) 100vw, 1px"
                       formats={['avif', 'webp']}
                       quality={70}
+                      loading="lazy"
                     />
-                  </div>
-                  <figcaption>{a.caption}</figcaption>
+                  </span>
+                  <figcaption>{a.foto.legenda}</figcaption>
                 </figure>
-              </div>
-            </div>
-          </li>
+              )}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <!-- Desktop: a foto da área ativa. Só a ativa fica visível e no leitor de tela. -->
+    <div class="areas__palco" id="areas-palco">
+      {
+        areas.map((a) => (
+          <figure class:list={['palco', { 'is-ativa': a.i === 0 }]} data-palco={a.i}>
+            {a.foto ? (
+              <>
+                <span class="palco__moldura cover">
+                  <Picture
+                    src={a.foto.src}
+                    alt={a.foto.alt}
+                    widths={[480, 720, 960, 1280]}
+                    sizes="(min-width: 64rem) 36vw, 1px"
+                    formats={['avif', 'webp']}
+                    quality={72}
+                    loading="lazy"
+                  />
+                </span>
+                <figcaption>{a.foto.legenda}</figcaption>
+              </>
+            ) : (
+              <span class="palco__moldura palco__moldura--texto" aria-hidden="true">
+                <span>{a.categoria}</span>
+              </span>
+            )}
+          </figure>
         ))
       }
-    </ol>
+    </div>
   </div>
 </section>
 
 <style>
   .areas {
-    padding-block: clamp(5rem, 14vw, 12rem);
-    background: var(--background);
+    padding-block: clamp(5rem, 12vw, 10rem);
   }
-  .areas__grid {
+  .areas__grade {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: clamp(1rem, 2vw, 2rem);
-    row-gap: 3rem;
   }
-  .areas__side {
-    grid-column: 1 / span 5;
+  .areas__lista {
+    grid-column: 1 / span 6;
     display: grid;
-    gap: clamp(2rem, 5vw, 3.5rem);
     align-content: start;
+    gap: clamp(2.5rem, 5vw, 4rem);
   }
-  .areas__list {
-    grid-column: 7 / span 6;
-    align-self: end;
+  .areas__itens {
     margin: 0;
     padding: 0;
     list-style: none;
+    border-top: 1px solid var(--border);
   }
-
-  /* ——— Foto lateral (desktop) ——— */
-  .areas__stage {
-    margin: 0;
-    position: sticky;
-    top: calc(var(--header-h-compact) + 2rem);
-  }
-  .areas__stack {
-    position: relative;
-    aspect-ratio: 4 / 5;
-    max-width: 26rem;
-    background: var(--border);
-  }
-  .areas__stack > div {
-    position: absolute;
-    inset: 0;
-  }
-  .areas__shot {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transform: scale(1.05);
-    clip-path: inset(0 0 0 0);
-    transition:
-      opacity 0.7s var(--ease-arch),
-      transform 0.9s var(--ease-arch);
-  }
-  .areas__shot.is-active {
-    opacity: 1;
-    transform: scale(1);
-    z-index: 1;
-  }
-  .areas__shot.is-leaving {
-    opacity: 0;
-    transform: scale(1.03);
-  }
-  .areas__caption {
-    position: relative;
-    height: 1.6rem;
-    margin-top: 0.85rem;
-    overflow: hidden;
-    font-size: var(--step--1);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-  }
-  .areas__caption span {
-    position: absolute;
-    inset: 0;
-    transform: translateY(110%);
-    transition: transform 0.6s var(--ease-arch);
-  }
-  .areas__caption span.is-active {
-    transform: translateY(0);
-  }
-
-  /* ——— Lista ——— */
   .area {
-    position: relative;
+    padding-block: 1.5rem 1.75rem;
+    border-bottom: 1px solid var(--border);
   }
-  .area:last-child {
-    border-bottom: 1px solid var(--text-primary);
-  }
-  .area__rule {
-    position: absolute;
-    inset: 0 0 auto;
-    height: 1px;
-    background: var(--text-primary);
-  }
-  .area__heading {
-    font: inherit;
+  .area__titulo {
     margin: 0;
+    font: inherit;
   }
-  .area__head {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: baseline;
+  .area__botao {
+    display: block;
     width: 100%;
-    padding: clamp(1.75rem, 3.5vw, 2.75rem) 0 1rem;
+    padding: 0.25rem 0;
     border: 0;
     background: none;
     color: inherit;
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 1.3rem + 2.4vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
     text-align: left;
     cursor: pointer;
   }
-  .area__title {
-    font-family: var(--font-serif);
-    font-size: clamp(2.25rem, 1.3rem + 3vw, 4.5rem);
-    line-height: 1;
-    letter-spacing: -0.03em;
-    transform-origin: left;
-    transition: transform 0.8s var(--ease-arch);
-  }
-  .area__toggle {
-    display: none;
-  }
-  .area__panel {
-    display: grid;
-    grid-template-rows: 1fr;
-  }
-  .area__panel-inner {
-    min-height: 0;
-    overflow: hidden;
-    padding: 0 0 clamp(1.75rem, 3.5vw, 2.5rem);
-  }
-  .area__text {
-    max-width: 38ch;
+  .area__texto {
+    max-width: 40ch;
+    margin-top: 0.75rem;
     color: var(--text-secondary);
-    transition: color 0.6s var(--ease-arch);
   }
-  .area__media {
+  /* A área ativa ganha um fio sob o título; as outras ficam como estão. */
+  .area.is-ativa .area__botao {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    text-decoration-color: var(--link-line, var(--bronze-on-light));
+  }
+
+  .areas__palco {
+    grid-column: 8 / span 5;
+    position: sticky;
+    top: calc(var(--header-h-compact) + 2rem);
+    align-self: start;
+    display: grid;
+  }
+  .palco {
+    grid-area: 1 / 1;
+    margin: 0;
+    visibility: hidden;
+    opacity: 0;
+  }
+  .palco.is-ativa {
+    visibility: visible;
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .palco {
+      transition:
+        opacity 0.5s var(--ease-arch),
+        visibility 0.5s;
+    }
+  }
+  .palco__moldura,
+  .area__moldura {
+    display: block;
+    aspect-ratio: 4 / 5;
+    background: var(--border);
+  }
+  .palco__moldura--texto {
+    display: grid;
+    place-items: center;
+    background: var(--primary);
+    color: var(--on-primary);
+    font-family: var(--font-serif);
+    font-size: var(--step-3);
+  }
+  .palco figcaption,
+  .area__foto-movel figcaption {
+    margin-top: 0.75rem;
+    font-size: var(--step--1);
+    letter-spacing: 0.02em;
+    color: var(--text-secondary);
+  }
+  .area__foto-movel {
     display: none;
+    margin: 1.5rem 0 0;
   }
 
-  .area.is-active .area__title {
-    transform: translateX(8px);
-  }
-  .area.is-active .area__text {
-    color: var(--text-primary);
-  }
-
-  /* ——— Celular e tablet: acordeão por toque, foto revelada abaixo ——— */
   @media (max-width: 63.99rem) {
-    .areas__side,
-    .areas__list {
+    .areas__lista {
       grid-column: 1 / -1;
     }
-    .areas__stage {
+    .areas__palco {
       display: none;
     }
-    .area__head {
-      grid-template-columns: minmax(0, 1fr) auto;
-      padding: 1.6rem 0;
-    }
-    .area__title {
-      font-size: clamp(2rem, 9.5vw, 3rem);
-    }
-    .area__toggle {
+    .area__foto-movel {
       display: block;
-      position: relative;
-      width: 18px;
-      height: 18px;
-      align-self: center;
     }
-    .area__toggle::before,
-    .area__toggle::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: currentColor;
-      transition: transform 0.6s var(--ease-arch);
+    .area__moldura {
+      aspect-ratio: 4 / 3;
     }
-    .area__toggle::after {
-      transform: rotate(90deg);
+    /* No celular não há foto para trocar: o título não precisa de destaque. */
+    .area.is-ativa .area__botao {
+      text-decoration: none;
     }
-    .area.is-open .area__toggle::after {
-      transform: rotate(0deg);
-    }
-    .area.is-active .area__title {
-      transform: none;
-    }
-    .area__panel {
-      grid-template-rows: 0fr;
-      transition: grid-template-rows 0.7s var(--ease-arch);
-    }
-    .area.is-open .area__panel {
-      grid-template-rows: 1fr;
-    }
-    .area__panel-inner {
-      padding: 0;
-    }
-    .area.is-open .area__panel-inner {
-      padding-bottom: 2rem;
-    }
-    .area__media {
-      display: block;
-      margin: 1.25rem 0 0;
-    }
-    .area__frame {
-      aspect-ratio: 4 / 5;
-      background: var(--border);
-      clip-path: inset(100% 0 0 0);
-      transition: clip-path 0.9s var(--ease-arch) 0.1s;
-    }
-    .area__frame :global(img) {
-      transform: scale(1.08);
-      transition: transform 1.2s var(--ease-arch) 0.1s;
-    }
-    .area.is-open .area__frame {
-      clip-path: inset(0 0 0 0);
-    }
-    .area.is-open .area__frame :global(img) {
-      transform: scale(1);
-    }
-    .area__media figcaption {
-      margin-top: 0.6rem;
-      font-size: var(--step--1);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .areas__shot,
-    .areas__caption span,
-    .area__panel,
-    .area__frame,
-    .area__frame :global(img),
-    .area__title {
-      transition: none !important;
+    .area__botao {
+      cursor: default;
     }
   }
 </style>
 
 <script>
-  const section = document.querySelector<HTMLElement>('[data-areas]');
-  if (section) {
-    const items = Array.from(section.querySelectorAll<HTMLElement>('[data-area]'));
-    const shots = Array.from(section.querySelectorAll<HTMLElement>('[data-shot]'));
-    const caps = Array.from(section.querySelectorAll<HTMLElement>('[data-cap]'));
-    const wide = window.matchMedia('(min-width: 64rem)');
-    let active = 0;
-
-    // Desktop: a foto lateral acompanha a área em foco (hover, foco ou clique).
-    const setActive = (i: number) => {
-      if (i === active) return;
-      shots[active]?.classList.remove('is-active');
-      shots[active]?.classList.add('is-leaving');
-      const prev = shots[active];
-      window.setTimeout(() => prev?.classList.remove('is-leaving'), 700);
-      shots[i]?.classList.add('is-active');
-      caps.forEach((c, k) => c.classList.toggle('is-active', k === i));
-      items.forEach((it, k) => it.classList.toggle('is-active', k === i));
-      active = i;
-    };
-
-    // Celular: acordeão; abrir uma área fecha as outras.
-    const setOpen = (i: number, open: boolean) => {
-      items.forEach((it, k) => {
-        const on = k === i ? open : false;
-        it.classList.toggle('is-open', on);
-        it.querySelector('.area__head')!.setAttribute('aria-expanded', String(on));
+  const secao = document.querySelector<HTMLElement>('[data-areas]');
+  if (secao) {
+    const itens = Array.from(secao.querySelectorAll<HTMLElement>('[data-area]'));
+    const palcos = Array.from(secao.querySelectorAll<HTMLElement>('[data-palco]'));
+    const ativa = (i: number) => {
+      itens.forEach((it, k) => {
+        it.classList.toggle('is-ativa', k === i);
+        it.querySelector('button')!.setAttribute('aria-pressed', String(k === i));
       });
-      if (open) items.forEach((it, k) => it.classList.toggle('is-active', k === i));
+      palcos.forEach((p, k) => p.classList.toggle('is-ativa', k === i));
     };
-
-    // No desktop todas as descrições ficam visíveis.
-    const syncMode = () => {
-      if (wide.matches) {
-        items.forEach((it) => {
-          it.classList.add('is-open');
-          it.querySelector('.area__head')!.setAttribute('aria-expanded', 'true');
-        });
-        items.forEach((it, k) => it.classList.toggle('is-active', k === active));
-      } else {
-        const openIndex = Math.max(0, items.findIndex((it) => it.classList.contains('is-active')));
-        setOpen(openIndex, true);
-      }
-    };
-    syncMode();
-    wide.addEventListener('change', syncMode);
-
-    items.forEach((it, i) => {
-      const head = it.querySelector<HTMLButtonElement>('.area__head')!;
+    itens.forEach((it, i) => {
+      const botao = it.querySelector('button')!;
       it.addEventListener('pointerenter', (e) => {
-        if (wide.matches && e.pointerType === 'mouse') setActive(i);
+        if (e.pointerType === 'mouse') ativa(i);
       });
-      head.addEventListener('focus', () => {
-        if (wide.matches) setActive(i);
-      });
-      head.addEventListener('click', () => {
-        if (wide.matches) setActive(i);
-        else setOpen(i, !it.classList.contains('is-open'));
-      });
+      botao.addEventListener('focus', () => ativa(i));
+      botao.addEventListener('click', () => ativa(i));
     });
   }
 </script>

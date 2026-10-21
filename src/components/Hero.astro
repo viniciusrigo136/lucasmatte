@@ -1,27 +1,36 @@
 ---
 import { Picture } from 'astro:assets';
 import LogoHero from './LogoHero.astro';
-import { getProject, projectImage, projectMeta } from '../data/projetos';
+import { getProject, projectMeta } from '../data/projetos';
 import { projectHref } from '../data/site';
+import fotoHero from '../assets/hero/casa-madeira.webp';
 
 /**
- * Hero: uma foto de projeto em tela cheia com a logo no centro.
+ * Hero: uma foto em tela cheia com a logo no centro.
  * A entrada é o primeiro dos dois momentos de movimento do site (o outro é o Decorare).
- * Para trocar a foto, mude `slug` e `file` (arquivo do próprio projeto em projetos.ts);
  * `pos`/`mpos` ajustam o enquadramento no desktop e no celular em pé.
+ * `projeto` (slug de projetos.ts) liga o crédito no pé do hero; sem ele, não há crédito.
+ * A foto atual (casa em madeira e pedra, enviada pelo escritório) não é um dos projetos
+ * do portfólio, então fica sem crédito.
  */
-const destaque = { slug: 'casa-nova-erechim', file: 'dsc06978.jpg', pos: '50% 50%', mpos: '38% 50%' };
-
-const project = getProject(destaque.slug)!;
-const foto = project.images.find((i) => i.file === destaque.file)!;
+const destaque = {
+  src: fotoHero,
+  alt: 'Fachada de casa térrea em madeira e pedra ao entardecer, com varandas de estrutura aparente, luzes acesas e caminho iluminado pelo gramado.',
+  pos: '50% 62%',
+  mpos: '50% 58%',
+  projeto: undefined as string | undefined,
+};
+const project = destaque.projeto ? getProject(destaque.projeto) : undefined;
+// Não gera larguras maiores que o original (1254 px).
+const widths = [480, 768, 1080, 1440, 1920, 2400].filter((w) => w < destaque.src.width).concat(destaque.src.width);
 ---
 
 <section class="hero" aria-labelledby="hero-title" data-hero>
   <div class="hero__media cover" data-hero-media>
     <Picture
-      src={projectImage(destaque.slug, destaque.file)}
-      alt={foto.alt}
-      widths={[480, 768, 1080, 1440, 1920, 2400]}
+      src={destaque.src}
+      alt={destaque.alt}
+      widths={widths}
       sizes="100vw"
       formats={['avif', 'webp']}
       quality={70}
@@ -42,10 +51,14 @@ const foto = project.images.find((i) => i.file === destaque.file)!;
     <p class="hero__frase">Arquitetura para viver. Espaços para sentir.</p>
   </div>
 
-  <p class="hero__credit" data-hero-tarde>
-    <a href={projectHref(project.slug)}>{project.title}</a>
-    <span>{projectMeta(project)}</span>
-  </p>
+  {
+    project && (
+      <p class="hero__credit" data-hero-tarde>
+        <a href={projectHref(project.slug)}>{project.title}</a>
+        <span>{projectMeta(project)}</span>
+      </p>
+    )
+  }
 </section>
 
 <style>
@@ -161,7 +174,7 @@ const foto = project.images.find((i) => i.file === destaque.file)!;
   /**
    * Entrada (~2s): a logo se revela da esquerda para a direita como um traço de croqui
    * ("Lucas Matté" e logo depois "Arquitetura") acima da frase, a cortina grafite se abre
-   * sobre a foto, que assenta de 1,06 para 1, e por fim entram o crédito e o header.
+   * sobre a foto, que assenta de 1,06 para 1, e por fim entram o crédito (se houver) e o header.
    * Só roda com html.hero-intro (primeira visita da sessão, sem movimento reduzido).
    */
   const root = document.documentElement;
