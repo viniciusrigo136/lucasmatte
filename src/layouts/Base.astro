@@ -10,9 +10,11 @@ interface Props {
   ogImage?: string;
   /** Header claro sobre uma foto no topo da página. */
   overlayHeader?: boolean;
+  /** A página abre com a logo grande no hero: a logo do header só aparece ao rolar. */
+  heroLogo?: boolean;
 }
 
-const { title = site.title, description = site.description, ogImage, overlayHeader = false } = Astro.props;
+const { title = site.title, description = site.description, ogImage, overlayHeader = false, heroLogo = false } = Astro.props;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : ogImage;
 ---
@@ -37,7 +39,7 @@ const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : o
   </head>
   <body>
     <a href="#conteudo" class="skip-link">Pular para o conteúdo</a>
-    <Header overlay={overlayHeader} />
+    <Header overlay={overlayHeader} heroLogo={heroLogo} />
     <main id="conteudo">
       <slot />
     </main>

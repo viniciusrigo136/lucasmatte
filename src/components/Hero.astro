@@ -1,664 +1,154 @@
 ---
-import { getImage } from 'astro:assets';
+import { Picture } from 'astro:assets';
+import LogoAnimada from './LogoAnimada.astro';
 import { getProject, projectImage, projectMeta } from '../data/projetos';
 import { projectHref } from '../data/site';
 
 /**
- * Slides da hero: projetos reais do arquivo de dados. Para cada um, uma foto para
- * telas largas e outra (ou a mesma) para celular em pé, com enquadramento próprio.
+ * Hero: uma foto de projeto em tela cheia com a logo no centro.
+ * A entrada (foto assentando + logo letra a letra) é o único momento marcante do site.
+ * Para trocar a foto, mude `slug` e `file` (arquivo do próprio projeto em projetos.ts).
  */
-const config = [
-  { slug: 'igreja', wide: 'dsc09501.jpg', tall: 'dsc09507.jpg', pos: '50% 60%', mpos: '50% 45%' },
-  { slug: 'casa-de-campo', wide: 'dsc09265.jpg', tall: 'dsc09290.jpg', pos: '50% 62%', mpos: '40% 50%' },
-  { slug: 'casa-nova-erechim', wide: 'dsc06978.jpg', tall: 'dsc07014.jpg', pos: '50% 50%', mpos: '50% 50%' },
-  { slug: 'casa-erechim', wide: 'dsc08618.jpg', tall: 'dsc08553.jpg', pos: '50% 38%', mpos: '50% 40%' },
-  { slug: 'decorare', wide: 'dsc08706.jpg', tall: 'dsc08706.jpg', pos: '50% 40%', mpos: '42% 45%' },
-];
+const destaque = { slug: 'casa-nova-erechim', file: 'dsc06978.jpg', pos: '50% 50%', mpos: '38% 50%' };
 
-const wideWidths = [960, 1440, 1920, 2400];
-const tallWidths = [480, 750, 1080];
-
-async function srcset(src: ImageMetadata, widths: number[], format: 'avif' | 'webp') {
-  const usable = widths.filter((w) => w <= src.width);
-  const imgs = await Promise.all(usable.map((w) => getImage({ src, width: w, format, quality: 68 })));
-  return imgs.map((img, i) => `${img.src} ${usable[i]}w`).join(', ');
-}
-
-const slides = await Promise.all(
-  config.map(async (c, i) => {
-    const project = getProject(c.slug)!;
-    const wide = projectImage(c.slug, c.wide);
-    const tall = projectImage(c.slug, c.tall);
-    const alt = project.images.find((im) => im.file === c.wide)?.alt ?? project.title;
-    const [wideAvif, wideWebp, tallAvif, tallWebp, fallback] = await Promise.all([
-      srcset(wide, wideWidths, 'avif'),
-      srcset(wide, wideWidths, 'webp'),
-      srcset(tall, tallWidths, 'avif'),
-      srcset(tall, tallWidths, 'webp'),
-      getImage({ src: wide, width: 1600, format: 'jpg', quality: 76 }),
-    ]);
-    return {
-      i,
-      n: String(i + 1).padStart(2, '0'),
-      project,
-      href: projectHref(c.slug),
-      meta: projectMeta(project),
-      alt,
-      wide,
-      pos: c.pos,
-      mpos: c.mpos,
-      wideAvif,
-      wideWebp,
-      tallAvif,
-      tallWebp,
-      fallback: fallback.src,
-    };
-  }),
-);
-const total = String(slides.length).padStart(2, '0');
-const first = slides[0];
-const tallMedia = '(max-width: 63.99rem) and (orientation: portrait)';
-const lines = ['Arquitetura', 'para viver.', 'Espaços', 'para sentir.'];
+const project = getProject(destaque.slug)!;
+const foto = project.images.find((i) => i.file === destaque.file)!;
 ---
 
-<section
-  class="hero"
-  data-hero
-  aria-roledescription="carrossel"
-  aria-label="Projetos em destaque"
-  data-interval="6000"
->
-  <div class="hero__media">
-    {
-      slides.map((s) => (
-        <div
-          class:list={['slide', { 'is-active': s.i === 0 }]}
-          data-slide={s.i}
-          data-name={s.project.title}
-          data-meta={s.meta}
-          data-href={s.href}
-          aria-roledescription="slide"
-          aria-label={`${s.n} de ${total}: ${s.project.title}`}
-          aria-hidden={s.i === 0 ? 'false' : 'true'}
-        >
-          <picture>
-            <source media={tallMedia} type="image/avif" srcset={s.tallAvif} sizes="100vw" />
-            <source media={tallMedia} type="image/webp" srcset={s.tallWebp} sizes="100vw" />
-            <source type="image/avif" srcset={s.wideAvif} sizes="100vw" />
-            <source type="image/webp" srcset={s.wideWebp} sizes="100vw" />
-            <img
-              class="slide__img"
-              src={s.fallback}
-              width={s.wide.width}
-              height={s.wide.height}
-              alt={s.alt}
-              style={`--pos: ${s.pos}; --mpos: ${s.mpos}`}
-              loading={s.i === 0 ? 'eager' : 'lazy'}
-              fetchpriority={s.i === 0 ? 'high' : 'low'}
-              decoding="async"
-            />
-          </picture>
-        </div>
-      ))
+<script is:inline>
+  // Chegando de outra página do site, a logo já aparece pronta (sem repetir a entrada).
+  try {
+    if (document.referrer && new URL(document.referrer).origin === location.origin) {
+      document.documentElement.classList.add('hero-skip');
     }
+  } catch (e) {}
+</script>
+
+<section class="hero" aria-labelledby="hero-title">
+  <div class="hero__media cover">
+    <Picture
+      src={projectImage(destaque.slug, destaque.file)}
+      alt={foto.alt}
+      widths={[480, 768, 1080, 1440, 1920, 2400]}
+      sizes="100vw"
+      formats={['avif', 'webp']}
+      quality={70}
+      loading="eager"
+      fetchpriority="high"
+      style={`--pos: ${destaque.pos}; --mpos: ${destaque.mpos}`}
+    />
   </div>
   <div class="hero__shade" aria-hidden="true"></div>
 
-  <!-- Zonas laterais (mouse): anterior / próximo -->
-  <button class="hero__zone hero__zone--prev" type="button" data-go="-1" tabindex="-1" aria-hidden="true"></button>
-  <button class="hero__zone hero__zone--next" type="button" data-go="1" tabindex="-1" aria-hidden="true"></button>
+  <h1 id="hero-title" class="hero__logo">
+    <LogoAnimada entrada label="Lucas Matté Arquitetura" />
+  </h1>
 
-  <div class="hero__content">
-    <h1 class="hero__title">
-      {lines.map((l) => <span class="line">{l}</span>)}
-    </h1>
-
-    <div class="hero__info">
-      <p class="hero__count">
-        <span class="line"><span class="line__inner" data-hero-count>{first.n}</span></span>
-        <span class="hero__count-total">/ {total}</span>
-      </p>
-      <a href={first.href} class="hero__name" data-hero-link>
-        <span class="line"><span class="line__inner" data-hero-name>{first.project.title}</span></span>
-      </a>
-      <p class="hero__meta">
-        <span class="line"><span class="line__inner" data-hero-meta>{first.meta}</span></span>
-      </p>
-    </div>
-
-    <div class="hero__bar">
-      <span class="hero__bar-n" aria-hidden="true">{first.n}</span>
-      <span class="hero__track" aria-hidden="true">
-        {slides.map((s) => <span class="hero__seg" data-seg={s.i}><span class="hero__fill" /></span>)}
-      </span>
-      <span class="hero__bar-n" aria-hidden="true">{total}</span>
-      <span class="hero__controls">
-        <button type="button" class="hero__ctrl" data-go="-1">
-          <span aria-hidden="true">←</span><span class="visually-hidden">Projeto anterior</span>
-        </button>
-        <button type="button" class="hero__ctrl hero__ctrl--pause" data-pause aria-pressed="false">
-          <span class="hero__pause-label">Pausar</span>
-        </button>
-        <button type="button" class="hero__ctrl" data-go="1">
-          <span aria-hidden="true">→</span><span class="visually-hidden">Próximo projeto</span>
-        </button>
-      </span>
-    </div>
-  </div>
-
-  <p class="visually-hidden" aria-live="polite" data-hero-live></p>
+  <p class="hero__credit">
+    <a href={projectHref(project.slug)}>{project.title}</a>
+    <span>{projectMeta(project)}</span>
+  </p>
 </section>
 
 <style>
   .hero {
-    position: sticky;
-    top: 0;
-    z-index: 0;
+    position: relative;
+    display: grid;
+    place-items: center;
     height: 100svh;
-    min-height: 30rem;
+    min-height: 32rem;
     overflow: hidden;
     color: var(--on-primary);
     background: var(--ink-deep);
-    touch-action: pan-y;
-    user-select: none;
-    -webkit-user-select: none;
+    isolation: isolate;
   }
 
-  /* ——— Slides ——— */
   .hero__media {
     position: absolute;
     inset: 0;
+    z-index: -2;
   }
-  .slide {
-    position: absolute;
-    inset: 0;
-    visibility: hidden;
-    overflow: hidden;
-  }
-  .slide.is-active,
-  .slide.is-leaving {
-    visibility: visible;
-  }
-  .slide.is-active {
-    z-index: 2;
-  }
-  .slide.is-leaving {
-    z-index: 1;
-  }
-  .slide picture {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-  .slide__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+  .hero__media :global(img) {
     object-position: var(--pos, 50% 50%);
   }
   @media (max-width: 63.99rem) and (orientation: portrait) {
-    .slide__img {
+    .hero__media :global(img) {
       object-position: var(--mpos, 50% 50%);
     }
   }
 
+  /* Escurece a foto o bastante para a logo marfim ter contraste em qualquer ponto. */
   .hero__shade {
     position: absolute;
     inset: 0;
-    z-index: 3;
-    pointer-events: none;
-    background:
-      linear-gradient(to top, rgb(16 14 12 / 0.74), rgb(16 14 12 / 0.1) 55%, rgb(16 14 12 / 0.22)),
-      linear-gradient(to right, rgb(16 14 12 / 0.38), rgb(16 14 12 / 0) 50%);
+    z-index: -1;
+    background-image:
+      radial-gradient(ellipse 60% 50% at 50% 50%, rgb(20 18 16 / 0.35), rgb(20 18 16 / 0) 75%),
+      linear-gradient(to bottom, rgb(20 18 16 / 0.5), rgb(20 18 16 / 0.42) 40%, rgb(20 18 16 / 0.58) 78%, rgb(20 18 16 / 0.78));
   }
 
-  .hero__zone {
+  .hero__logo {
+    width: min(78vw, 46rem);
+    margin: 0;
+    font: inherit;
+  }
+
+  .hero__credit {
     position: absolute;
-    top: 0;
-    bottom: 30%;
-    z-index: 4;
-    width: 22%;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    display: none;
-  }
-  .hero__zone--prev {
-    left: 0;
-  }
-  .hero__zone--next {
-    right: 0;
-  }
-  @media (hover: hover) and (pointer: fine) {
-    .hero__zone {
-      display: block;
-    }
-  }
-
-  /* ——— Conteúdo dentro da foto ——— */
-  .hero__content {
-    position: absolute;
-    inset: auto 0 0;
-    z-index: 5;
-    display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-areas:
-      'title title title title title title title title info info info info'
-      'bar bar bar bar bar bar bar bar bar bar bar bar';
-    column-gap: clamp(1rem, 2vw, 2rem);
-    row-gap: clamp(1.5rem, 4svh, 2.5rem);
-    align-items: end;
-    max-width: var(--max);
-    margin-inline: auto;
-    padding: 0 var(--gutter) clamp(1.25rem, 4svh, 2.25rem);
-    pointer-events: none;
-  }
-  .hero__content a,
-  .hero__content button {
-    pointer-events: auto;
-  }
-
-  .hero__title {
-    grid-area: title;
-    font-size: clamp(2.6rem, min(7.4vw, 10.5svh), 8.75rem);
-    line-height: 0.96;
-    letter-spacing: -0.035em;
-    text-wrap: initial;
-    white-space: nowrap;
-  }
-  .hero__title .line:nth-child(2n) {
-    padding-left: 0.6em;
-  }
-
-  /* Nome, categoria e contador trocam de dentro de uma máscara a cada slide. */
-  .hero__info .line,
-  .hero__count .line {
-    overflow: hidden;
-  }
-  .line__inner {
-    display: block;
-  }
-  .hero__info {
-    grid-area: info;
-    justify-self: end;
-    display: grid;
-    gap: 0.35rem;
-    min-width: min(100%, 20rem);
-    padding-bottom: 0.4rem;
-  }
-  .hero__count {
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: max(1.5rem, env(safe-area-inset-bottom));
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 0.4rem;
-    font-family: var(--font-serif);
-    font-size: 1rem;
-  }
-  .hero__count-total {
-    color: rgb(243 239 231 / 0.6);
+    gap: 0.25rem 1rem;
     font-size: var(--step--1);
   }
-  .hero__name {
-    display: inline-flex;
-    align-items: baseline;
+  .hero__credit a {
     font-family: var(--font-serif);
-    font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2.25rem);
-    line-height: 1.15;
-    text-decoration: none;
-  }
-  .hero__name:hover {
+    font-size: var(--step-1);
     text-decoration: underline;
     text-decoration-thickness: 1px;
-    text-underline-offset: 0.25em;
+    text-underline-offset: 0.3em;
+    text-decoration-color: rgb(243 239 231 / 0.5);
+    transition: text-decoration-color 0.3s;
   }
-  .hero__meta {
-    font-size: var(--step--1);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: rgb(243 239 231 / 0.88);
+  .hero__credit a:hover {
+    text-decoration-color: currentColor;
   }
-
-  /* Indicador: 01 ───── 05, um segmento por slide */
-  .hero__bar {
-    grid-area: bar;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding-top: clamp(0.5rem, 1.5svh, 1rem);
-    border-top: 1px solid rgb(243 239 231 / 0.22);
-    font-size: var(--step--1);
-    letter-spacing: 0.06em;
-  }
-  .hero__bar-n {
-    font-family: var(--font-serif);
-    letter-spacing: 0;
-    color: rgb(243 239 231 / 0.75);
-  }
-  .hero__track {
-    flex: 1;
-    display: flex;
-    gap: 6px;
-  }
-  .hero__seg {
-    position: relative;
-    flex: 1;
-    height: 1px;
-    background: rgb(243 239 231 / 0.25);
-    overflow: hidden;
-  }
-  .hero__fill {
-    position: absolute;
-    inset: 0;
-    background: var(--on-primary);
-    transform: scaleX(0);
-    transform-origin: left;
-  }
-  .hero__seg.is-done .hero__fill {
-    transform: scaleX(1);
-  }
-  .hero__controls {
-    display: flex;
-    gap: 0.25rem;
-    margin-left: 0.5rem;
-  }
-  .hero__ctrl {
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-    padding: 0 0.5rem;
-    border: 0;
-    background: none;
-    color: rgb(243 239 231 / 0.85);
-    font: 500 var(--step--1)/1 var(--font-sans);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: color 0.3s;
-  }
-  .hero__ctrl span {
-    display: inline-block;
-    transition: transform 0.3s var(--ease-arch);
-  }
-  .hero__ctrl:hover {
-    color: var(--on-primary);
-  }
-  .hero__ctrl[data-go='-1']:hover span {
-    transform: translateX(-3px);
-  }
-  .hero__ctrl[data-go='1']:hover span {
-    transform: translateX(3px);
+  .hero__credit span {
+    letter-spacing: 0.04em;
   }
 
-  /* ——— Celular e tablet: tudo dentro da foto, empilhado na base ——— */
-  @media (max-width: 63.99rem) {
-    .hero__content {
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-areas: 'info' 'title' 'bar';
-      row-gap: 1.1rem;
-      padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  /* ——— Entrada: a foto assenta e clareia enquanto a logo se forma ———
+     Faz parte do mesmo momento da logo (ver LogoAnimada.astro). */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html:not(.hero-skip)) .hero__media {
+      animation: hero-foto 2.6s var(--ease-arch) both;
     }
-    .hero__info {
-      justify-self: start;
-      min-width: 0;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: 0.1rem 0.9rem;
-      align-items: baseline;
-      padding-bottom: 0;
+    :global(html:not(.hero-skip)) .hero__shade {
+      animation: hero-sombra 2.2s ease-out both;
     }
-    .hero__count {
-      grid-row: 1 / span 2;
-      font-size: var(--step--1);
-    }
-    .hero__name {
-      font-size: 1.125rem;
-    }
-    .hero__title {
-      font-size: clamp(2.5rem, 11.4vw, 4.25rem);
-      line-height: 0.98;
-    }
-    .hero__bar {
-      gap: 0.75rem;
-    }
-    .hero__shade {
-      background: linear-gradient(to top, rgb(16 14 12 / 0.78), rgb(16 14 12 / 0.12) 55%, rgb(16 14 12 / 0.24));
+    :global(html:not(.hero-skip)) .hero__credit {
+      animation: hero-credito 0.9s var(--ease-arch) 1.7s both;
     }
   }
-  @media (max-width: 26rem) {
-    .hero__bar-n {
-      display: none;
+  @keyframes hero-foto {
+    from {
+      transform: scale(1.06);
     }
   }
-  /* Telas muito baixas (celular deitado) */
-  @media (max-height: 30rem) {
-    .hero__title {
-      font-size: clamp(2rem, 13svh, 3.25rem);
+  @keyframes hero-sombra {
+    from {
+      background-color: rgb(20 18 16 / 0.45);
     }
-    .hero__content {
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      grid-template-areas:
-        'title title title title title title title info info info info info'
-        'bar bar bar bar bar bar bar bar bar bar bar bar';
+    to {
+      background-color: rgb(20 18 16 / 0);
+    }
+  }
+  @keyframes hero-credito {
+    from {
+      opacity: 0;
     }
   }
 </style>
-
-<script>
-  const hero = document.querySelector<HTMLElement>('[data-hero]');
-  if (hero) initSlideshow(hero);
-
-  function initSlideshow(root: HTMLElement) {
-    const slides = Array.from(root.querySelectorAll<HTMLElement>('[data-slide]'));
-    const segs = Array.from(root.querySelectorAll<HTMLElement>('[data-seg]'));
-    const barStart = root.querySelector<HTMLElement>('.hero__bar-n')!;
-    const countEl = root.querySelector<HTMLElement>('[data-hero-count]')!;
-    const nameEl = root.querySelector<HTMLElement>('[data-hero-name]')!;
-    const metaEl = root.querySelector<HTMLElement>('[data-hero-meta]')!;
-    const linkEl = root.querySelector<HTMLAnchorElement>('[data-hero-link]')!;
-    const live = root.querySelector<HTMLElement>('[data-hero-live]')!;
-    const pauseBtn = root.querySelector<HTMLButtonElement>('[data-pause]')!;
-    const pauseLabel = pauseBtn.querySelector<HTMLElement>('.hero__pause-label')!;
-    const interval = Number(root.dataset.interval || 6000);
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const EASE = 'cubic-bezier(0.16, 1, 0.3, 1)';
-    const total = slides.length;
-
-    let current = 0;
-    let busy = false;
-    let progress: Animation | null = null;
-    // Com movimento reduzido, não avança sozinho (o visitante troca quando quiser).
-    let userPaused = reduce;
-    const holds = new Set<string>();
-    const pad = (n: number) => String(n + 1).padStart(2, '0');
-
-    // ——— Progresso / autoplay ———
-    const syncPlayback = () => {
-      if (!progress) return;
-      if (userPaused || holds.size > 0) progress.pause();
-      else progress.play();
-    };
-    const hold = (key: string, on: boolean) => {
-      if (on) holds.add(key);
-      else holds.delete(key);
-      syncPlayback();
-    };
-    const startProgress = () => {
-      progress?.cancel();
-      segs.forEach((s, i) => s.classList.toggle('is-done', i < current));
-      const fill = segs[current]?.querySelector<HTMLElement>('.hero__fill');
-      if (!fill) return;
-      progress = fill.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], {
-        duration: interval,
-        easing: 'linear',
-        fill: 'forwards',
-      });
-      progress.onfinish = () => go(current + 1, 1);
-      syncPlayback();
-    };
-
-    // ——— Texto: sai por cima, entra por baixo ———
-    const swapText = (el: HTMLElement, text: string) => {
-      if (reduce) {
-        el.textContent = text;
-        return;
-      }
-      const out = el.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-110%)' }], {
-        duration: 320,
-        easing: 'cubic-bezier(0.7, 0, 0.84, 0)',
-        fill: 'forwards',
-      });
-      out.onfinish = () => {
-        el.textContent = text;
-        out.cancel();
-        el.animate([{ transform: 'translateY(110%)' }, { transform: 'translateY(0)' }], { duration: 800, easing: EASE });
-      };
-    };
-
-    // ——— Transição entre fotos: a nova entra por máscara e assenta; a atual amplia e sai ———
-    function go(target: number, dir: 1 | -1) {
-      if (busy || total < 2) return;
-      const next = (target + total) % total;
-      if (next === current) return;
-      busy = true;
-      const from = slides[current];
-      const to = slides[next];
-      const fromImg = from.querySelector<HTMLElement>('.slide__img')!;
-      const toImg = to.querySelector<HTMLElement>('.slide__img')!;
-      const dragged = fromImg.style.transform || 'scale(1)';
-
-      from.classList.remove('is-active');
-      from.classList.add('is-leaving');
-      to.classList.add('is-active');
-      from.setAttribute('aria-hidden', 'true');
-      to.setAttribute('aria-hidden', 'false');
-
-      const done = () => {
-        from.classList.remove('is-leaving');
-        fromImg.style.transform = '';
-        busy = false;
-      };
-
-      if (reduce) {
-        to.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 400 }).onfinish = done;
-      } else {
-        const wipe = dir === 1 ? 'inset(0 0 0 100%)' : 'inset(0 100% 0 0)';
-        to.animate([{ clipPath: wipe }, { clipPath: 'inset(0 0 0 0)' }], { duration: 1250, easing: EASE });
-        toImg.animate([{ transform: 'scale(1.08)' }, { transform: 'scale(1)' }], { duration: 1600, easing: EASE });
-        const leave = fromImg.animate(
-          [
-            { transform: dragged, opacity: 1 },
-            { transform: `translateX(${dir * -4}%) scale(1.04)`, opacity: 0.3 },
-          ],
-          { duration: 1250, easing: EASE, fill: 'forwards' },
-        );
-        leave.onfinish = () => {
-          leave.cancel();
-          done();
-        };
-      }
-
-      current = next;
-      const d = to.dataset;
-      swapText(countEl, pad(current));
-      swapText(nameEl, d.name || '');
-      swapText(metaEl, d.meta || '');
-      barStart.textContent = pad(current);
-      linkEl.href = d.href || linkEl.href;
-      live.textContent = `Projeto ${pad(current)} de ${total}: ${d.name}`;
-      // Pré-carrega a foto seguinte.
-      const after = slides[(current + 1) % total].querySelector('img');
-      if (after) after.loading = 'eager';
-      startProgress();
-    }
-
-    // ——— Controles ———
-    root.querySelectorAll<HTMLElement>('[data-go]').forEach((btn) =>
-      btn.addEventListener('click', () => {
-        const dir = Number(btn.dataset.go) as 1 | -1;
-        go(current + dir, dir);
-      }),
-    );
-    const setPaused = (p: boolean) => {
-      userPaused = p;
-      pauseBtn.setAttribute('aria-pressed', String(p));
-      pauseLabel.textContent = p ? 'Tocar' : 'Pausar';
-      syncPlayback();
-    };
-    pauseBtn.addEventListener('click', () => setPaused(!userPaused));
-    if (reduce) setPaused(true);
-
-    root.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') go(current + 1, 1);
-      if (e.key === 'ArrowLeft') go(current - 1, -1);
-    });
-    root.addEventListener('focusin', () => hold('focus', true));
-    root.addEventListener('focusout', (e) => {
-      if (!root.contains(e.relatedTarget as Node)) hold('focus', false);
-    });
-
-    // ——— Swipe / arrastar: a foto acompanha o dedo ———
-    let startX = 0;
-    let startY = 0;
-    let dx = 0;
-    let dragging = false;
-    let decided = false;
-    let horizontal = false;
-
-    root.addEventListener('pointerdown', (e) => {
-      if (busy || e.button > 0 || (e.target as HTMLElement).closest('a, button')) return;
-      startX = e.clientX;
-      startY = e.clientY;
-      dx = 0;
-      dragging = true;
-      decided = false;
-      horizontal = false;
-      hold('drag', true);
-    });
-    root.addEventListener('pointermove', (e) => {
-      if (!dragging) return;
-      const mx = e.clientX - startX;
-      const my = e.clientY - startY;
-      if (!decided) {
-        if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
-        decided = true;
-        horizontal = Math.abs(mx) > Math.abs(my);
-        if (!horizontal) {
-          // Gesto vertical: a página rola normalmente.
-          dragging = false;
-          hold('drag', false);
-          return;
-        }
-        root.setPointerCapture?.(e.pointerId);
-      }
-      dx = mx;
-      const img = slides[current].querySelector<HTMLElement>('.slide__img')!;
-      img.style.transform = `translateX(${dx * 0.35}px) scale(1.02)`;
-    });
-    const end = () => {
-      if (!dragging) return;
-      dragging = false;
-      hold('drag', false);
-      if (!horizontal) return;
-      const img = slides[current].querySelector<HTMLElement>('.slide__img')!;
-      const threshold = Math.min(70, root.clientWidth * 0.16);
-      if (Math.abs(dx) > threshold) {
-        go(current + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
-      } else {
-        const back = img.animate([{ transform: img.style.transform || 'none' }, { transform: 'translateX(0) scale(1)' }], {
-          duration: 600,
-          easing: EASE,
-        });
-        img.style.transform = '';
-        back.onfinish = () => back.cancel();
-      }
-      dx = 0;
-    };
-    root.addEventListener('pointerup', end);
-    root.addEventListener('pointercancel', end);
-
-    // ——— Pausa fora da tela e com a aba oculta ———
-    window.addEventListener('scroll', () => hold('offscreen', window.scrollY > root.offsetHeight * 0.9), { passive: true });
-    document.addEventListener('visibilitychange', () => hold('hidden', document.hidden));
-
-    startProgress();
-  }
-</script>

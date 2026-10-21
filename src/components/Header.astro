@@ -5,9 +5,11 @@ import { site, homeHref, sectionHref, contactHref } from '../data/site';
 interface Props {
   /** Começa sobre uma foto escura (textos claros) e passa a creme ao rolar. */
   overlay?: boolean;
+  /** Esconde a logo do header enquanto a logo grande do hero está na tela. */
+  heroLogo?: boolean;
 }
 
-const { overlay = false } = Astro.props;
+const { overlay = false, heroLogo = false } = Astro.props;
 const nav = [
   { href: sectionHref('projetos'), label: 'Projetos' },
   { href: sectionHref('sobre'), label: 'Sobre' },
@@ -16,7 +18,7 @@ const nav = [
 ];
 ---
 
-<header class="site-header" data-compact="false" data-overlay={overlay ? 'true' : 'false'}>
+<header class="site-header" data-compact="false" data-overlay={overlay ? 'true' : 'false'} data-hero-logo={heroLogo ? 'true' : undefined}>
   <div class="site-header__inner">
     <a href={homeHref} class="site-header__brand" aria-label="Lucas Matté Arquitetura, página inicial">
       <Logo tone="both" width={168} eager class="site-header__logo" />
@@ -110,6 +112,28 @@ const nav = [
   }
   .site-header[data-compact='true'] .site-header__brand {
     transform: scale(0.84);
+  }
+  /* Na home a logo grande do hero já está na tela; a do header entra ao rolar. */
+  .site-header[data-hero-logo][data-compact='false']:not(.is-open) .site-header__brand {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .site-header[data-hero-logo] .site-header__brand {
+    transition:
+      transform 0.6s var(--ease-arch),
+      opacity 0.6s var(--ease-arch),
+      visibility 0.6s;
+  }
+  /* O header entra no fim da formação da logo do hero (mesmo momento). */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html:not(.hero-skip)) .site-header[data-hero-logo] .site-header__inner {
+      animation: header-entra 0.9s var(--ease-arch) 1.7s both;
+    }
+  }
+  @keyframes header-entra {
+    from {
+      opacity: 0;
+    }
   }
   .site-header__brand :global(.site-header__logo) {
     width: clamp(124px, 11vw, 158px);

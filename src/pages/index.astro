@@ -32,10 +32,9 @@ const categories = [...new Set(all.map((s) => s.project.category))].join(', ');
 
 ---
 
-<Base ogImage={og.src} overlayHeader>
+<Base ogImage={og.src} overlayHeader heroLogo>
   <Hero />
 
-  <!-- Tudo depois da hero sobe por cima dela (a hero fica fixa e escurece) -->
   <div class="stage">
 
   <!-- Filosofia -->
@@ -133,12 +132,8 @@ const categories = [...new Set(all.map((s) => s.project.category))].join(', ');
 </Base>
 
 <style>
-  /* ——— Palco: as seções cobrem a hero fixa ——— */
   .stage {
-    position: relative;
-    z-index: 1;
     background: var(--background);
-    box-shadow: 0 -2.5rem 4rem rgb(16 14 12 / 0.18);
   }
 
   /* ——— Manifesto ——— */

@@ -1,0 +1,95 @@
+---
+import logoSvg from '../assets/marca/logo-grafite.svg?raw';
+
+/**
+ * Logo da marca em SVG embutido, separada em letras para a entrada do hero.
+ *
+ * O arquivo da marca é um único <path> com 29 contornos (letras e os vazados de
+ * "a", "e", "q"...). Os índices abaixo agrupam cada letra com seus vazados, na
+ * ordem de leitura. Se o arquivo da logo mudar, confira os índices.
+ */
+const topo = [[27], [16], [17], [18, 19], [20], [26], [21, 22], [23], [24, 25]]; // L u c a s M a tt é
+const acento = [28];
+const base = [[10, 11], [12], [0, 1], [2], [15, 13], [3], [4, 5], [9], [6], [14], [7, 8]]; // A r q u i t e t u r a
+
+interface Props {
+  class?: string;
+  /** Texto acessível da logo. */
+  label?: string;
+  /** Entrada letra a letra (usada só no hero). */
+  entrada?: boolean;
+}
+const { class: className, label = 'Lucas Matté Arquitetura', entrada = false } = Astro.props;
+
+const d = logoSvg.match(/\sd="([^"]+)"/)?.[1];
+if (!d) throw new Error('Logo: caminho não encontrado no SVG.');
+// Uma casa decimal basta na escala da logo e reduz o HTML pela metade.
+const contornos = d
+  .split(/(?=M)/)
+  .map((s) => s.trim().replace(/-?\d+\.\d+/g, (n) => String(Math.round(Number(n) * 10) / 10)))
+  .filter(Boolean);
+const junta = (ids: number[]) => ids.map((i) => contornos[i]).join(' ');
+---
+
+<svg
+  class:list={['logo-animada', { 'logo-animada--entrada': entrada }, className]}
+  viewBox="0 0 1125 327"
+  role="img"
+  aria-label={label}
+  focusable="false"
+>
+  <defs>
+    <clipPath id="logo-linha-topo"><rect x="0" y="0" width="1125" height="200" /></clipPath>
+    <clipPath id="logo-linha-base"><rect x="0" y="240" width="1125" height="87" /></clipPath>
+  </defs>
+  <g clip-path="url(#logo-linha-topo)">
+    {topo.map((ids, i) => <path class="glifo glifo--topo" style={`--i: ${i}`} d={junta(ids)} />)}
+  </g>
+  <path class="glifo glifo--acento" d={junta(acento)} />
+  <g clip-path="url(#logo-linha-base)">
+    {base.map((ids, i) => <path class="glifo glifo--base" style={`--i: ${i}`} d={junta(ids)} />)}
+  </g>
+</svg>
+
+<style>
+  .logo-animada {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .glifo {
+    fill: currentColor;
+    fill-rule: evenodd;
+  }
+
+  /* Entrada: "Lucas Matté" sobe letra a letra de dentro da própria linha, o acento
+     pousa por último e "Arquitetura" assenta logo depois. Os deslocamentos estão em
+     unidades do viewBox, o bastante para cada letra começar fora do recorte da linha.
+     Com preferência por menos movimento, ou chegando de outra página do site
+     (.hero-skip), a logo já aparece pronta. */
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html:not(.hero-skip)) .logo-animada--entrada .glifo--topo {
+      animation: glifo-sobe 1.15s var(--ease-arch) calc(0.35s + var(--i) * 0.06s) both;
+      --de: 205px;
+    }
+    :global(html:not(.hero-skip)) .logo-animada--entrada .glifo--base {
+      animation: glifo-sobe 0.95s var(--ease-arch) calc(1.15s + var(--i) * 0.035s) both;
+      --de: 88px;
+    }
+    :global(html:not(.hero-skip)) .logo-animada--entrada .glifo--acento {
+      animation: acento-pousa 0.9s var(--ease-arch) 1.05s both;
+    }
+  }
+  @keyframes glifo-sobe {
+    from {
+      transform: translateY(var(--de));
+    }
+  }
+  @keyframes acento-pousa {
+    from {
+      opacity: 0;
+      transform: translateY(-40px);
+    }
+  }
+</style>
