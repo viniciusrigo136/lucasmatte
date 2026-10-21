@@ -152,11 +152,15 @@ const primeira = areas.find((a) => a.foto)?.i ?? -1;
     margin-top: 0.75rem;
     color: var(--text-secondary);
   }
-  /* A área ativa ganha um fio sob o título; as outras ficam como estão. */
-  .area.is-ativa .area__botao {
+  /* A área ativa ganha um fio sob o título, que aparece com a troca de foto. */
+  .area__botao {
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 0.22em;
+    text-decoration-color: transparent;
+    transition: text-decoration-color 0.5s var(--ease-arch);
+  }
+  .area.is-ativa .area__botao {
     text-decoration-color: var(--link-line, var(--bronze-on-light));
   }
 
@@ -182,6 +186,14 @@ const primeira = areas.find((a) => a.foto)?.i ?? -1;
       transition:
         opacity 0.5s var(--ease-arch),
         visibility 0.5s;
+    }
+    /* A foto que entra assenta no quadro (1,02 → 1) enquanto aparece. */
+    .palco :global(img) {
+      transform: scale(1.02);
+      transition: transform 1.2s var(--ease-arch);
+    }
+    .palco.is-ativa :global(img) {
+      transform: none;
     }
   }
   .palco__moldura,

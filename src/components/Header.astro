@@ -207,7 +207,8 @@ const nav = secoes;
     transform: scaleX(1);
     transform-origin: left;
   }
-  /* Sem gap: o sublinhado (borda) tem exatamente a largura do texto. */
+  /* O sublinhado tem exatamente a largura do texto e recua no hover, como no link
+     grande do contato (é a mesma ação). */
   .site-nav__cta {
     display: inline-flex;
     align-items: center;
@@ -216,7 +217,17 @@ const nav = secoes;
     font-size: var(--step--1);
     font-weight: 500;
     text-decoration: none;
-    border-bottom: 1px solid currentColor;
+    background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+    transition:
+      background-size 0.7s var(--ease-arch),
+      opacity 0.12s ease-out;
+  }
+  .site-nav__cta:hover {
+    background-size: 30% 1px;
+  }
+  .site-nav__cta:active,
+  .site-header__whats:active {
+    opacity: 0.7;
   }
   .site-header__whats {
     display: none;
@@ -228,6 +239,13 @@ const nav = secoes;
     text-decoration: underline;
     text-decoration-thickness: 1px;
     text-underline-offset: 0.4em;
+    text-decoration-color: rgb(from currentColor r g b / 0.55);
+    transition:
+      text-decoration-color 0.3s,
+      opacity 0.12s ease-out;
+  }
+  .site-header__whats:hover {
+    text-decoration-color: currentColor;
   }
   /* Com o menu aberto, o painel já tem o botão de conversa. */
   .site-header.is-open .site-header__whats {

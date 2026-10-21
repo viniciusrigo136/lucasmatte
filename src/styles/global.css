@@ -250,11 +250,16 @@ a {
   transition:
     background-color 0.5s var(--ease-arch),
     color 0.5s var(--ease-arch),
-    border-color 0.5s var(--ease-arch);
+    border-color 0.5s var(--ease-arch),
+    transform 0.12s ease-out;
 }
 .btn:hover {
   --btn-bg: var(--primary-hover);
   --btn-bd: var(--primary-hover);
+}
+/* Ao pressionar, o botão cede um pouco (resposta imediata ao toque ou clique). */
+.btn:active {
+  transform: scale(0.98);
 }
 
 /* Link de texto sublinhado. Em fundo escuro, defina --link-line: var(--bronze-on-dark). */
@@ -266,10 +271,17 @@ a {
   text-decoration-thickness: 1px;
   text-underline-offset: 0.4em;
   text-decoration-color: var(--link-line, var(--bronze-on-light));
-  transition: text-decoration-color 0.3s;
+  transition:
+    text-decoration-color 0.3s,
+    opacity 0.12s ease-out;
 }
 .text-link:hover {
   text-decoration-color: currentColor;
+}
+/* Links de texto, ao pressionar: um leve esmaecimento, sem deslocar nada. */
+.text-link:active,
+.link-lg:active {
+  opacity: 0.7;
 }
 
 /* Link grande de contato (chamada final da home e da página de projeto). O texto vai
@@ -282,6 +294,7 @@ a {
   font-size: clamp(1.75rem, 1rem + 2.4vw, 3.25rem);
   line-height: 1.3;
   text-decoration: none;
+  transition: opacity 0.12s ease-out;
 }
 .link-lg__texto {
   padding-bottom: 0.2em;
@@ -311,6 +324,12 @@ html.menu-open {
 ::view-transition-group(*) {
   animation-duration: 0.8s;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* Movimento reduzido: o botão não muda de escala; cor e opacidade continuam. */
+@media (prefers-reduced-motion: reduce) {
+  .btn:active {
+    transform: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   @view-transition {

@@ -509,6 +509,17 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
   .lightbox::backdrop {
     background: rgb(24 22 20 / 0.9);
   }
+  /* Abre com um fade curto (fecha de imediato: a saída é mais rápida que a entrada). */
+  @media (prefers-reduced-motion: no-preference) {
+    .lightbox[open] {
+      animation: lightbox-in 0.3s var(--ease-arch);
+    }
+  }
+  @keyframes lightbox-in {
+    from {
+      opacity: 0;
+    }
+  }
   .lightbox__bar,
   .lightbox__nav {
     display: flex;
@@ -559,11 +570,17 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
     cursor: pointer;
     transition:
       background-color 0.4s,
-      border-color 0.4s;
+      border-color 0.4s,
+      transform 0.12s ease-out;
   }
   .lightbox__btn:hover {
     background: rgb(243 239 231 / 0.1);
     border-color: var(--on-primary);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .lightbox__btn:active {
+      transform: scale(0.97);
+    }
   }
 
   /* ——— Tablet e celular: uma coluna, mesma margem e mesma escala ——— */
@@ -609,6 +626,12 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
     const count = dialog.querySelector<HTMLElement>('.lightbox__count')!;
     let current = 0;
     let trigger: HTMLElement | null = null;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    // Ao trocar de foto (setas ou botões), a nova surge num crossfade curto quando carrega.
+    img.addEventListener('load', () => {
+      if (!reduce.matches && dialog.open) img.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, easing: 'ease-out' });
+    });
 
     const show = (i: number) => {
       current = (i + items.length) % items.length;
