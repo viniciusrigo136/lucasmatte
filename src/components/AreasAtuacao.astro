@@ -96,18 +96,18 @@ const areas = definicoes.map((a, i) => {
 
 <style>
   .areas {
-    padding-block: clamp(5rem, 12vw, 10rem);
+    padding-block: var(--space-block);
   }
   .areas__grade {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(1rem, 2vw, 2rem);
+    column-gap: var(--grid-gap);
   }
   .areas__lista {
     grid-column: 1 / span 6;
     display: grid;
     align-content: start;
-    gap: clamp(2.5rem, 5vw, 4rem);
+    gap: var(--space-block);
   }
   .areas__itens {
     margin: 0;
@@ -116,7 +116,7 @@ const areas = definicoes.map((a, i) => {
     border-top: 1px solid var(--border);
   }
   .area {
-    padding-block: 1.5rem 1.75rem;
+    padding-block: var(--space-text);
     border-bottom: 1px solid var(--border);
   }
   .area__titulo {

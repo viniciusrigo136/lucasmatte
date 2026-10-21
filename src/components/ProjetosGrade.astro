@@ -4,20 +4,22 @@ import { projectImage, projectMeta, type ProjectData } from '../data/projetos';
 import { projectHref } from '../data/site';
 
 /**
- * Grade editorial dos projetos (exceto o destaque). Cada vaga tem posição e proporção
- * próprias, então os itens nunca formam uma grade de cards iguais; os projetos ocupam
- * as vagas na ordem de projetos.ts, e o padrão se repete se houver mais de quatro.
+ * Grade dos projetos (exceto o destaque), em linhas de dois itens com alternância
+ * fixa: 7 + 5 colunas, depois 5 + 7. Nas duas vagas de uma linha a foto tem a mesma
+ * altura (a de uma foto 4:5 em 5 colunas), então nomes e categorias ficam alinhados.
+ * Os projetos ocupam as vagas na ordem de projetos.ts; o padrão se repete.
  */
 interface Props {
   projects: ProjectData[];
 }
 const { projects } = Astro.props;
 
+// Por item: largura em colunas e, no celular, a proporção própria da foto.
 const vagas = [
-  { cls: 'vaga--a', ratio: '4 / 3', sizes: '(min-width: 64rem) 56vw, 100vw' }, // grande, horizontal
-  { cls: 'vaga--b', ratio: '4 / 5', sizes: '(min-width: 64rem) 40vw, 100vw' }, // grande, vertical
-  { cls: 'vaga--c', ratio: '3 / 4', sizes: '(min-width: 64rem) 32vw, 80vw' }, // vertical estreita
-  { cls: 'vaga--d', ratio: '16 / 9', sizes: '(min-width: 64rem) 56vw, 100vw' }, // horizontal larga
+  { cls: 'vaga--larga', sizes: '(min-width: 64rem) 58vw, 100vw' },
+  { cls: 'vaga--estreita', sizes: '(min-width: 64rem) 42vw, 100vw' },
+  { cls: 'vaga--estreita', sizes: '(min-width: 64rem) 42vw, 100vw' },
+  { cls: 'vaga--larga', sizes: '(min-width: 64rem) 58vw, 100vw' },
 ];
 ---
 
@@ -29,7 +31,7 @@ const vagas = [
       return (
         <li class:list={['vaga', vaga.cls]}>
           <a href={projectHref(project.slug)} class="item" aria-label={project.title}>
-            <span class="item__foto cover" style={`aspect-ratio: ${vaga.ratio}`}>
+            <span class="item__foto cover">
               <Picture
                 src={projectImage(project.slug, capa.file)}
                 alt=""
@@ -52,12 +54,13 @@ const vagas = [
 
 <style>
   .grade {
+    /* Altura da linha: uma foto 4:5 com 5 colunas de largura. */
+    --linha: calc((5 * var(--col) + 4 * var(--grid-gap)) * 5 / 4);
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(1rem, 2vw, 2rem);
-    row-gap: clamp(4rem, 9vw, 8rem);
-    margin: 0;
-    padding-block: 0;
+    column-gap: var(--grid-gap);
+    row-gap: var(--space-block);
+    margin-block: 0;
     list-style: none;
   }
 
@@ -69,6 +72,7 @@ const vagas = [
   }
   .item__foto {
     display: block;
+    height: var(--linha);
     margin-bottom: 0.9rem;
     background: var(--border);
   }
@@ -95,33 +99,33 @@ const vagas = [
     }
   }
 
-  /* Vagas: duas grandes lado a lado, depois uma vertical estreita e uma horizontal larga. */
-  .vaga--a {
+  /* Alternância fixa: linha 1 = 7 + 5; linha 2 = 5 + 7. */
+  .vaga:nth-child(4n + 1) {
     grid-column: 1 / span 7;
   }
-  .vaga--b {
+  .vaga:nth-child(4n + 2) {
     grid-column: 8 / span 5;
-    margin-top: clamp(4rem, 10vw, 9rem);
   }
-  .vaga--c {
-    grid-column: 2 / span 4;
+  .vaga:nth-child(4n + 3) {
+    grid-column: 1 / span 5;
   }
-  .vaga--d {
-    grid-column: 7 / span 6;
-    align-self: center;
+  .vaga:nth-child(4n) {
+    grid-column: 6 / span 7;
   }
 
+  /* Tablet e celular: uma coluna; cada foto com a proporção da sua vaga. */
   @media (max-width: 63.99rem) {
-    .grade {
-      row-gap: clamp(3rem, 10vw, 5rem);
-    }
-    .vaga {
+    .vaga.vaga {
       grid-column: 1 / -1;
-      margin-top: 0;
     }
-    /* A vaga vertical estreita mantém a proporção própria também no celular. */
-    .vaga--c {
-      width: 80%;
+    .item__foto {
+      height: auto;
+    }
+    .vaga--larga .item__foto {
+      aspect-ratio: 3 / 2;
+    }
+    .vaga--estreita .item__foto {
+      aspect-ratio: 4 / 5;
     }
   }
 </style>

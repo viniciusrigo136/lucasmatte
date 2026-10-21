@@ -24,8 +24,23 @@
   --font-serif: 'Libre Baskerville', 'Iowan Old Style', Georgia, serif;
   --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-  --gutter: clamp(1rem, 4.5vw, 4.5rem);
-  --max: 100rem;
+  /* ——— Grade ———
+     Um único container para o site inteiro: conteúdo com até --max de largura,
+     centralizado, com --gutter de margem lateral. Dentro dele, 12 colunas com
+     --grid-gap fixo. O header usa o mesmo container, então a logo e o botão do
+     menu marcam as bordas do conteúdo. */
+  --gutter: clamp(20px, 4.5vw, 86px);
+  --max: 1760px;
+  --grid-gap: 24px;
+
+  /* ——— Espaçamento vertical ———
+     section: entre seções; block: entre blocos de uma seção; text: entre textos.
+     Cada seção usa --space-block em cima e embaixo: duas seções vizinhas somam
+     exatamente --space-section (o dobro de block em todas as larguras). */
+  --space-section: clamp(80px, 10vw, 160px);
+  --space-block: clamp(40px, 5vw, 80px);
+  --space-text: 24px;
+
   --header-h: 5.5rem;
   --header-h-compact: 4rem;
   --ease-arch: cubic-bezier(0.16, 1, 0.3, 1);
@@ -61,7 +76,8 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  scroll-padding-top: calc(var(--header-h-compact) + 1rem);
+  /* Âncoras e foco nunca ficam sob o header fixo (altura compacta + folga). */
+  scroll-padding-top: calc(var(--header-h-compact) + var(--space-text));
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -150,9 +166,22 @@ a {
 
 .wrap {
   width: 100%;
-  max-width: var(--max);
+  max-width: calc(var(--max) + 2 * var(--gutter));
   margin-inline: auto;
   padding-inline: var(--gutter);
+  /* Unidades cqw dentro do container medem a largura útil do conteúdo. */
+  container-type: inline-size;
+}
+
+/* 12 colunas com gutter fixo. --col é a largura de uma coluna, para alturas de linha
+   calculadas a partir da grade (fotos lado a lado com a mesma altura). */
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--grid-gap);
+}
+.wrap {
+  --col: calc((100cqw - 11 * var(--grid-gap)) / 12);
 }
 
 /* Moldura de foto: a imagem preenche o quadro inteiro, recortada no centro. */

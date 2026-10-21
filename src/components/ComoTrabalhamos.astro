@@ -26,16 +26,16 @@ const etapas = site.etapas;
 
 <style>
   .etapas {
-    padding-block: clamp(5rem, 12vw, 10rem);
+    padding-block: var(--space-block);
   }
   .etapas :global(.etapas__titulo) {
-    margin-bottom: clamp(2.5rem, 6vw, 4.5rem);
+    margin-bottom: var(--space-block);
     font-size: var(--step-3);
   }
   .etapas__lista {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-    gap: 2.5rem clamp(1rem, 3vw, 3rem);
+    gap: var(--space-block) var(--grid-gap);
     margin: 0;
     padding: 0;
     list-style: none;

@@ -76,17 +76,19 @@ const menores = (project.featuredImages ?? []).map(foto);
 <style>
   .destaque {
     position: relative;
-    padding-block: clamp(4rem, 10vw, 9rem);
+    padding-block: var(--space-block);
     background: var(--background);
     color: var(--text-primary);
     view-timeline-name: --destaque;
   }
+  /* Foto principal em 1–6 (borda do container); texto e miniaturas em 7–12, a um
+     gutter de distância. As miniaturas descem até a base da foto principal. */
   .destaque__grade {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
     grid-template-rows: auto 1fr;
-    column-gap: clamp(1rem, 2vw, 2rem);
-    row-gap: clamp(2rem, 4vw, 3.5rem);
+    column-gap: var(--grid-gap);
+    row-gap: var(--space-block);
   }
   .destaque figure {
     margin: 0;
@@ -100,13 +102,12 @@ const menores = (project.featuredImages ?? []).map(foto);
   }
 
   .destaque__texto {
-    grid-column: 8 / span 5;
+    grid-column: 7 / span 6;
     grid-row: 1;
     display: grid;
     align-content: start;
     justify-items: start;
-    gap: 1rem;
-    padding-top: clamp(0rem, 4vw, 3rem);
+    gap: var(--space-text);
   }
   .destaque__titulo {
     font-size: var(--step-4);
@@ -130,24 +131,18 @@ const menores = (project.featuredImages ?? []).map(foto);
     /* bronze do tema: escuro sobre o preto, claro se um projeto claro for o destaque */
     color: var(--link-line, var(--bronze-on-light));
   }
-  .destaque__link {
-    margin-top: 0.5rem;
-  }
 
+  /* Duas miniaturas de 3 colunas cada, lado a lado, com a mesma altura. */
   .destaque__menores {
-    grid-column: 8 / span 5;
+    grid-column: 7 / span 6;
     grid-row: 2;
     align-self: end;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: clamp(1rem, 2vw, 2rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--grid-gap);
   }
   .destaque__menor {
-    aspect-ratio: 3 / 4;
-  }
-  /* A segunda foto desce um pouco: as duas não formam uma fileira de cards iguais. */
-  .destaque__menor:nth-child(2) {
-    margin-top: clamp(2rem, 6vw, 5rem);
+    aspect-ratio: 4 / 5;
   }
 
   @media (max-width: 63.99rem) {
@@ -166,12 +161,8 @@ const menores = (project.featuredImages ?? []).map(foto);
     .destaque__menores {
       order: 2;
     }
-    .destaque__menor:nth-child(2) {
-      margin-top: 0;
-    }
     .destaque__texto {
       order: 3;
-      padding-top: 0;
     }
   }
 </style>

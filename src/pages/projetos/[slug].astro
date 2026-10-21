@@ -24,31 +24,41 @@ const all = await Promise.all(
 const cover = all.find((i) => i.file === project.cover) ?? all[0];
 const gallery = all.filter((i) => i !== cover);
 
-// Ritmo de revista: paisagens alternam entre sangrada e deslocada; retratos formam
-// pares desencontrados ou aparecem sozinhos, estreitos e fora do eixo.
-type Block =
-  | { kind: 'bleed' | 'wide'; items: typeof gallery }
-  | { kind: 'pair'; items: typeof gallery }
-  | { kind: 'narrow'; items: typeof gallery };
-const blocks: Block[] = [];
-let landscapeCount = 0;
-for (let i = 0; i < gallery.length; i++) {
+// Galeria em linhas com alternância fixa: 7 + 5 colunas, 5 + 7, depois uma foto inteira
+// (16:9). Nas linhas de duas fotos as duas têm a mesma altura, então as legendas ficam
+// na mesma linha de base. A foto horizontal vai para a vaga larga; a linha inteira usa
+// uma horizontal (sem uma disponível, segue com mais uma linha de duas).
+type Foto = (typeof gallery)[number];
+type Linha = { tipo: 'par-75' | 'par-57' | 'inteira'; items: Foto[] };
+const linhas: Linha[] = [];
+const ciclo = ['par-75', 'par-57', 'inteira'] as const;
+let pares = 0;
+for (let i = 0, r = 0; i < gallery.length; r++) {
+  const tipo = ciclo[r % ciclo.length];
   const cur = gallery[i];
-  if (cur.landscape) {
-    blocks.push({ kind: landscapeCount++ % 2 === 0 ? 'wide' : 'bleed', items: [cur] });
-  } else if (gallery[i + 1] && !gallery[i + 1].landscape) {
-    blocks.push({ kind: 'pair', items: [cur, gallery[i + 1]] });
-    i++;
-  } else {
-    blocks.push({ kind: 'narrow', items: [cur] });
+  const prox = gallery[i + 1];
+  if ((tipo === 'inteira' && cur.landscape) || !prox) {
+    linhas.push({ tipo: 'inteira', items: [cur] });
+    i += 1;
+    continue;
   }
+  const larga = pares++ % 2 === 0 ? 0 : 1; // posição da vaga de 7 colunas
+  let par = [cur, prox];
+  // A horizontal ocupa a vaga larga.
+  if (par[larga].landscape === false && par[1 - larga].landscape) par = [par[1], par[0]];
+  linhas.push({ tipo: larga === 0 ? 'par-75' : 'par-57', items: par });
+  i += 2;
 }
 let idx = 0;
-const blocksIndexed = blocks.map((b, bi) => ({
-  ...b,
-  flip: bi % 2 === 1,
-  items: b.items.map((it) => ({ ...it, i: idx++ })),
-}));
+const linhasNumeradas = linhas.map((l) => ({ ...l, items: l.items.map((it) => ({ ...it, i: idx++ })) }));
+
+// Ficha técnica: só os dados que existem em projetos.ts.
+const ficha = [
+  { rotulo: 'Categoria', valor: project.category },
+  { rotulo: 'Cidade', valor: project.location },
+  { rotulo: 'Materiais', valor: project.materials?.join(', ') },
+  { rotulo: 'Fotografias', valor: String(all.length) },
+].filter((f): f is { rotulo: string; valor: string } => !!f.valor);
 
 const og = await getImage({ src: cover.src, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
 const heroWide = cover.landscape;
@@ -93,55 +103,52 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
         <h1 class="case-hero__title">
           {titleWords.map((w) => <span class="line">{w}</span>)}
         </h1>
-        <dl class="case-hero__meta">
-          <div>
-            <dt>Categoria</dt>
-            <dd>{project.category}</dd>
-          </div>
-          {
-            project.location && (
-              <div>
-                <dt>Cidade</dt>
-                <dd>{project.location}</dd>
-              </div>
-            )
-          }
-          <div>
-            <dt>Fotografias</dt>
-            <dd>{String(all.length).padStart(2, '0')}</dd>
-          </div>
-        </dl>
       </div>
     </header>
 
     <!-- 5. Descrição -->
-    <section class="case-intro wrap" aria-label="Sobre o projeto">
-      <p class="case-intro__summary">{project.summary}</p>
-      <div class="case-intro__body">
-        {project.description.map((para) => <p>{para}</p>)}
+    <!-- Ficha técnica em 1–4, texto em 5–12 (sem ficha, o texto ocupa 1–8) -->
+    <section class:list={['case-intro', 'wrap', { 'case-intro--sem-ficha': ficha.length === 0 }]} aria-label="Sobre o projeto">
+      {
+        ficha.length > 0 && (
+          <dl class="case-intro__ficha">
+            {ficha.map((f) => (
+              <div>
+                <dt>{f.rotulo}</dt>
+                <dd>{f.valor}</dd>
+              </div>
+            ))}
+          </dl>
+        )
+      }
+      <div class="case-intro__texto">
+        <p class="case-intro__summary">{project.summary}</p>
+        <div class="case-intro__body">
+          {project.description.map((para) => <p>{para}</p>)}
+        </div>
       </div>
     </section>
 
     <!-- 6. Galeria editorial -->
-    <section class="gallery" aria-label={`Galeria de fotos: ${project.title}`}>
+    <section class="gallery wrap" aria-label={`Galeria de fotos: ${project.title}`}>
       {
-        blocksIndexed.map((b) => (
-          <div class:list={['g', `g--${b.kind}`, { 'g--flip': b.flip }]}>
-            {b.items.map((img) => (
+        linhasNumeradas.map((l) => (
+          <div class:list={['g', `g--${l.tipo}`]}>
+            {l.items.map((img, k) => (
               <button
                 type="button"
-                class="g__item"
+                class:list={['g__item', l.tipo === 'inteira' ? 'g__item--inteira' : (l.tipo === 'par-75') === (k === 0) ? 'g__item--larga' : 'g__item--estreita']}
                 data-lightbox-index={img.i}
                 data-full={img.largeSrc}
                 data-alt={img.alt}
                 aria-label={`Ampliar foto ${img.i + 1} de ${gallery.length}: ${img.alt}`}
               >
-                <span class="g__frame">
+                <span class="g__frame cover">
                   <Picture
                     src={img.src}
                     alt={img.alt}
-                    widths={b.kind === 'bleed' || b.kind === 'wide' ? [640, 960, 1400, 1920, 2400] : [420, 640, 900, 1200]}
-                    sizes={b.kind === 'bleed' ? '100vw' : b.kind === 'wide' ? '(min-width: 64rem) 75vw, 100vw' : '(min-width: 64rem) 40vw, 100vw'}
+                    widths={l.tipo === 'inteira' ? [640, 960, 1400, 1920, 2400] : [420, 640, 900, 1200, 1600]}
+                    sizes={l.tipo === 'inteira' ? '(min-width: 1850px) 1760px, 92vw' : '(min-width: 64rem) 55vw, 100vw'}
                     formats={['avif', 'webp']}
                     quality={72}
                   />
@@ -258,11 +265,7 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
   }
   .case-hero__title-wrap {
     grid-row: 3;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    gap: 2rem;
-    padding-bottom: clamp(2rem, 6svh, 4rem);
+    padding-bottom: var(--space-block);
   }
   .case-hero__title {
     font-size: clamp(3.25rem, 1rem + 9vw, 10.5rem);
@@ -270,68 +273,75 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
     letter-spacing: -0.04em;
     text-wrap: initial;
   }
+  /* Linhas pares recuam uma coluna da grade. */
   .case-hero__title .line:nth-child(2n) {
-    padding-left: 0.5em;
-  }
-  .case-hero__meta {
-    display: grid;
-    gap: 0.5rem;
-    margin: 0;
-    min-width: 13rem;
-    font-size: var(--step--1);
-  }
-  .case-hero__meta div {
-    display: flex;
-    justify-content: space-between;
-    gap: 1.5rem;
-    padding-top: 0.5rem;
-    border-top: 1px solid rgb(243 239 231 / 0.3);
-  }
-  .case-hero__meta dt {
-    letter-spacing: 0.02em;
-    color: rgb(243 239 231 / 0.82);
-  }
-  .case-hero__meta dd {
-    margin: 0;
+    padding-left: calc(var(--col) + var(--grid-gap));
   }
 
-
-  /* ——— Descrição ——— */
+  /* ——— Ficha técnica (1–4) e texto (5–12) ——— */
   .case-intro {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(1rem, 2vw, 2rem);
-    row-gap: 2.5rem;
-    padding-block: clamp(5rem, 12vw, 10rem);
+    column-gap: var(--grid-gap);
+    row-gap: var(--space-block);
+    align-items: start;
+    padding-block: var(--space-block);
+  }
+  .case-intro__ficha {
+    grid-column: 1 / span 4;
+    margin: 0;
+    font-size: var(--step--1);
+    border-top: 1px solid var(--border);
+  }
+  .case-intro__ficha div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-text);
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .case-intro__ficha dt {
+    letter-spacing: 0.02em;
+    color: var(--text-secondary);
+  }
+  .case-intro__ficha dd {
+    margin: 0;
+    text-align: right;
+  }
+  .case-intro__texto {
+    grid-column: 5 / span 8;
+    display: grid;
+    gap: var(--space-block);
+  }
+  .case-intro--sem-ficha .case-intro__texto {
+    grid-column: 1 / span 8;
   }
   .case-intro__summary {
-    grid-column: 4 / span 8;
     font-family: var(--font-serif);
     font-size: clamp(1.75rem, 1rem + 2.8vw, 3.75rem);
     line-height: 1.15;
     letter-spacing: -0.02em;
   }
   .case-intro__body {
-    grid-column: 7 / span 5;
     display: grid;
-    gap: 1.25rem;
+    gap: var(--space-text);
+    max-width: 60ch;
     color: var(--text-secondary);
   }
 
-  /* ——— Galeria editorial ——— */
+  /* ——— Galeria ———
+     Linhas dentro do container: 7 + 5, 5 + 7 e uma foto inteira (16:9). Nas linhas de
+     duas fotos, a altura é a de uma foto 3:4 em 5 colunas, igual para as duas. */
   .gallery {
+    --linha-par: calc((5 * var(--col) + 4 * var(--grid-gap)) * 4 / 3);
     display: grid;
-    gap: clamp(4rem, 10vw, 9rem);
-    padding-bottom: clamp(5rem, 12vw, 10rem);
+    row-gap: var(--space-block);
+    padding-bottom: var(--space-block);
   }
   .g {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(1rem, 2vw, 2rem);
-    max-width: var(--max);
-    width: 100%;
-    margin-inline: auto;
-    padding-inline: var(--gutter);
+    column-gap: var(--grid-gap);
   }
   .g__item {
     display: block;
@@ -353,8 +363,6 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
     background: var(--border);
   }
   .g__frame :global(img) {
-    width: 100%;
-    height: auto;
     transition: transform 1.2s var(--ease-arch);
   }
   .g__cap {
@@ -364,62 +372,38 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
     font-size: var(--step--1);
     color: var(--text-secondary);
   }
-  @media (hover: hover) and (pointer: fine) {
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
     .g__item:hover .g__frame :global(img) {
       transform: scale(1.03);
     }
   }
-
-  .g--bleed {
-    max-width: none;
-    padding-inline: 0;
+  .g--par-75 .g__item:first-child,
+  .g--par-57 .g__item:last-child {
+    grid-column: span 7;
   }
-  .g--bleed .g__item {
+  .g--par-75 .g__item:last-child,
+  .g--par-57 .g__item:first-child {
+    grid-column: span 5;
+  }
+  .g--par-75 .g__frame,
+  .g--par-57 .g__frame {
+    height: var(--linha-par);
+  }
+  .g--inteira .g__item {
     grid-column: 1 / -1;
   }
-  .g--bleed .g__frame :global(img) {
-    max-height: 92svh;
-    object-fit: cover;
-  }
-  .g--bleed .g__cap {
-    padding-inline: var(--gutter);
-  }
-  .g--wide .g__item {
-    grid-column: 1 / span 9;
-  }
-  .g--wide.g--flip .g__item {
-    grid-column: 4 / span 9;
-  }
-  .g--pair .g__item:first-child {
-    grid-column: 1 / span 5;
-  }
-  .g--pair .g__item:last-child {
-    grid-column: 7 / span 5;
-    margin-top: clamp(4rem, 14vw, 12rem);
-  }
-  .g--pair.g--flip .g__item:first-child {
-    grid-column: 2 / span 5;
-    margin-top: clamp(4rem, 14vw, 12rem);
-  }
-  .g--pair.g--flip .g__item:last-child {
-    grid-column: 8 / span 5;
-    margin-top: 0;
-  }
-  .g--narrow .g__item {
-    grid-column: 8 / span 4;
-  }
-  .g--narrow.g--flip .g__item {
-    grid-column: 3 / span 4;
+  .g--inteira .g__frame {
+    aspect-ratio: 16 / 9;
   }
 
   /* ——— Detalhes + contato ——— */
   .case-details {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(1rem, 2vw, 2rem);
-    row-gap: 2.5rem;
+    column-gap: var(--grid-gap);
+    row-gap: var(--space-block);
     align-items: end;
-    padding-block: clamp(3rem, 8vw, 7rem) clamp(5rem, 12vw, 10rem);
+    padding-block: var(--space-block);
     border-top: 1px solid var(--border);
   }
   .case-details__title {
@@ -480,7 +464,7 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
   .next__content {
     display: grid;
     gap: 1rem;
-    padding-block: clamp(3rem, 8vw, 6rem);
+    padding-block: var(--space-block);
   }
   .next__label,
   .next__meta {
@@ -582,48 +566,35 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
     border-color: var(--on-primary);
   }
 
-  /* ——— Telas médias e celular ——— */
+  /* ——— Tablet e celular: uma coluna, mesma margem e mesma escala ——— */
   @media (max-width: 63.99rem) {
     .case-hero {
       height: auto;
       min-height: 88svh;
     }
-
-    .case-hero__title-wrap {
-      grid-template-columns: 1fr;
-    }
-    .case-hero__meta {
-      min-width: 0;
-      max-width: 22rem;
-    }
-    .case-intro__summary,
-    .case-intro__body,
+    .case-intro__ficha,
+    .case-intro__texto,
+    .case-intro--sem-ficha .case-intro__texto,
     .case-details__title,
     .case-details__list,
     .case-details__link {
       grid-column: 1 / -1;
     }
     .g {
-      padding-inline: 0;
+      row-gap: var(--space-block);
     }
-    .g .g__item {
-      grid-column: 1 / -1 !important;
-      margin-top: 0 !important;
+    .g .g__item.g__item {
+      grid-column: 1 / -1;
     }
-    .g--pair {
-      row-gap: clamp(1rem, 4vw, 2rem);
+    .g--par-75 .g__frame,
+    .g--par-57 .g__frame {
+      height: auto;
     }
-    .g--pair .g__item:last-child,
-    .g--pair.g--flip .g__item:first-child {
-      width: 82%;
-      justify-self: end;
+    .g__item--larga .g__frame {
+      aspect-ratio: 4 / 3;
     }
-    .g--narrow .g__item {
-      width: 78%;
-      justify-self: center;
-    }
-    .g__cap {
-      padding-inline: var(--gutter);
+    .g__item--estreita .g__frame {
+      aspect-ratio: 4 / 5;
     }
   }
 </style>

@@ -135,29 +135,28 @@ const demais = projetos.filter((p) => !p.featured);
     background: transparent;
   }
 
-  /* ——— Manifesto ——— */
+  /* ——— Filosofia ———
+     Título em 1–8; o bloco de apoio em 7–12, logo abaixo (um --space-block). */
   .manifesto {
-    position: relative;
-    padding-block: clamp(3rem, 8vw, 6rem) clamp(6rem, 16vw, 13rem);
-    overflow: clip;
+    padding-block: var(--space-section) var(--space-block);
   }
   .manifesto__grid {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(1rem, 2vw, 2rem);
-    row-gap: clamp(2.5rem, 6vw, 5rem);
+    column-gap: var(--grid-gap);
+    row-gap: var(--space-block);
   }
   .manifesto__title {
-    grid-column: 1 / span 10;
+    grid-column: 1 / span 8;
     font-size: clamp(2.25rem, 1.2rem + 4.2vw, 6.25rem);
     line-height: 1.04;
     letter-spacing: -0.03em;
     text-wrap: balance;
   }
   .manifesto__aside {
-    grid-column: 8 / span 4;
+    grid-column: 7 / span 6;
     display: grid;
-    gap: 1.25rem;
+    gap: var(--space-text);
   }
   .manifesto__sub {
     font-size: var(--step-2);
@@ -167,46 +166,45 @@ const demais = projetos.filter((p) => !p.featured);
     color: var(--text-secondary);
     max-width: 40ch;
   }
-
   .manifesto__rule {
     display: block;
     height: 1px;
     background: var(--text-primary);
   }
 
-  /* ——— Projetos ——— */
+  /* ——— Projetos ———
+     Do fim da Filosofia ao título: um --space-section (block + block). */
   .projects {
-    padding-top: clamp(6rem, 9vw, 8rem);
-    padding-bottom: clamp(5rem, 12vw, 10rem);
+    padding-block: var(--space-block);
   }
   .projects__head {
-    margin-bottom: clamp(3rem, 7vw, 6rem);
+    margin-bottom: var(--space-block);
   }
   .projects__grade {
-    margin-top: clamp(5rem, 12vw, 10rem);
+    margin-top: var(--space-block);
   }
 
-  /* ——— Escritório ——— */
+  /* ——— Escritório ———
+     Mesmo fundo do site; a foto alinha o topo com o topo do título. */
   .about {
-    padding-block: clamp(6rem, 14vw, 12rem);
-    background: var(--surface);
+    padding-block: var(--space-block);
+    background: var(--background);
   }
   .about__grid {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(1rem, 2vw, 2rem);
-    row-gap: clamp(3rem, 6vw, 5rem);
-    align-items: end;
+    column-gap: var(--grid-gap);
+    row-gap: var(--space-block);
+    align-items: start;
   }
   .about__text {
     grid-column: 1 / span 6;
     display: grid;
-    gap: 1.25rem;
+    gap: var(--space-text);
     justify-items: start;
     color: var(--text-secondary);
   }
   .about__text :global(.sh) {
-    margin-bottom: clamp(1rem, 3vw, 2.5rem);
     text-wrap: balance;
     font-size: clamp(2.5rem, 1rem + 4.4vw, 6rem);
     color: var(--text-primary);
@@ -222,7 +220,6 @@ const demais = projetos.filter((p) => !p.featured);
     max-width: 44ch;
   }
   .about__credenciais {
-    margin-top: 0.5rem;
     font-size: var(--step--1);
     color: var(--text-primary);
   }
@@ -242,19 +239,16 @@ const demais = projetos.filter((p) => !p.featured);
     color: var(--text-secondary);
   }
 
-  /* ——— CTA final ——— */
+  /* ——— Contato ——— */
   .cta {
-    min-height: 100svh;
-    display: grid;
-    align-items: center;
-    padding-block: clamp(6rem, 12vw, 9rem);
+    padding-block: var(--space-block);
     background: var(--primary);
     color: var(--on-primary);
   }
   .cta__inner {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: clamp(2.5rem, 6vw, 5rem);
+    gap: var(--space-block);
   }
   .cta__title {
     font-size: clamp(3.25rem, 1rem + 9vw, 10rem);
@@ -262,16 +256,17 @@ const demais = projetos.filter((p) => !p.featured);
     letter-spacing: -0.04em;
     text-wrap: initial;
   }
+  /* A segunda linha recua exatamente duas colunas da grade. */
   .cta__title .line:nth-child(2) {
-    padding-left: clamp(1rem, 12vw, 14rem);
+    padding-left: calc(2 * (var(--col) + var(--grid-gap)));
   }
   .cta__foot {
     display: grid;
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: clamp(1rem, 2vw, 2rem);
-    row-gap: 2.5rem;
+    column-gap: var(--grid-gap);
+    row-gap: var(--space-block);
     align-items: end;
-    padding-top: clamp(2rem, 4vw, 3rem);
+    padding-top: var(--space-block);
     border-top: 1px solid rgb(243 239 231 / 0.18);
   }
   .cta__text {
@@ -280,7 +275,7 @@ const demais = projetos.filter((p) => !p.featured);
     color: rgb(243 239 231 / 0.78);
   }
   .cta__actions {
-    grid-column: 8 / span 5;
+    grid-column: 7 / span 6;
     display: grid;
     justify-items: start;
     gap: 0.75rem;
@@ -295,15 +290,10 @@ const demais = projetos.filter((p) => !p.featured);
     color: var(--on-dark-muted);
   }
 
-  /* ——— Telas médias e celular ——— */
+  /* ——— Tablet e celular: tudo em uma coluna, mesma margem e mesma escala ——— */
   @media (max-width: 63.99rem) {
     .manifesto__title,
-    .manifesto__aside {
-      grid-column: 1 / -1;
-    }
-    .manifesto__aside {
-      max-width: 34rem;
-    }
+    .manifesto__aside,
     .about__portrait,
     .about__text,
     .cta__text,
@@ -311,11 +301,14 @@ const demais = projetos.filter((p) => !p.featured);
       grid-column: 1 / -1;
       grid-row: auto;
     }
+    .manifesto__aside {
+      max-width: 34rem;
+    }
     .about__portrait {
       width: min(100%, 30rem);
     }
-    .cta {
-      min-height: 88svh;
+    .cta__title .line:nth-child(2) {
+      padding-left: calc(var(--col) + var(--grid-gap));
     }
   }
 
@@ -323,7 +316,7 @@ const demais = projetos.filter((p) => !p.featured);
      Com suporte a scroll-driven animations, a cor segue a rolagem na linha do tempo do
      bloco (--destaque, em ProjetoDestaque.astro). A gradação acontece só em trechos em
      que, fora do bloco preto, aparecem fotos ou o título grande:
-       entrada: enquanto o topo do bloco vai de 25% da tela até o topo (o espaço acima
+       entrada: enquanto o topo do bloco vai de 15% da tela até o topo (o espaço acima
                 de "Projetos" mantém a seção anterior fora da tela nesse trecho);
        saída:   enquanto a base do bloco sobe de 100% a 70% da tela (abaixo dele, só o
                 espaço e o começo da primeira foto da grade).
@@ -353,7 +346,7 @@ const demais = projetos.filter((p) => !p.featured);
   }
   @keyframes fundo-destaque {
     entry 0%,
-    entry 75% {
+    entry 85% {
       background-color: var(--background);
     }
     entry 100%,
@@ -368,7 +361,7 @@ const demais = projetos.filter((p) => !p.featured);
     entry 0% {
       color: var(--text-primary);
     }
-    entry 86.7% {
+    entry 92% {
       color: var(--on-primary);
     }
     exit 16%,
@@ -378,15 +371,15 @@ const demais = projetos.filter((p) => !p.featured);
   }
   @keyframes header-destaque {
     entry 0%,
-    entry 75% {
-      background-color: rgb(48 45 41 / 0.92);
+    entry 85% {
+      background-color: var(--primary);
     }
     entry 100%,
     exit 0% {
       background-color: var(--decorare-black);
     }
     exit 30% {
-      background-color: rgb(48 45 41 / 0.92);
+      background-color: var(--primary);
     }
   }
 
