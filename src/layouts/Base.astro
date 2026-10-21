@@ -35,6 +35,27 @@ const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : o
     <meta property="og:description" content={description} />
     {ogImageUrl && <meta property="og:image" content={ogImageUrl} />}
     <meta name="twitter:card" content="summary_large_image" />
+    {
+      heroLogo && (
+        <script is:inline>
+          // Entrada do hero: só na primeira visita da sessão e sem preferência por menos
+          // movimento. Decidido aqui, antes da primeira pintura. Se o script do hero não
+          // começar em 3s, tudo aparece pronto.
+          (function () {
+            var root = document.documentElement;
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            try {
+              if (sessionStorage.getItem('lm-hero-intro')) return;
+              sessionStorage.setItem('lm-hero-intro', '1');
+            } catch (e) {}
+            root.classList.add('hero-intro');
+            setTimeout(function () {
+              if (!window.__lmHeroIntro) root.classList.remove('hero-intro');
+            }, 3000);
+          })();
+        </script>
+      )
+    }
     <slot name="head" />
   </head>
   <body>

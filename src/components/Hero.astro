@@ -1,13 +1,14 @@
 ---
 import { Picture } from 'astro:assets';
-import LogoAnimada from './LogoAnimada.astro';
+import LogoHero from './LogoHero.astro';
 import { getProject, projectImage, projectMeta } from '../data/projetos';
 import { projectHref } from '../data/site';
 
 /**
  * Hero: uma foto de projeto em tela cheia com a logo no centro.
- * A entrada (foto assentando + logo letra a letra) é o único momento marcante do site.
- * Para trocar a foto, mude `slug` e `file` (arquivo do próprio projeto em projetos.ts).
+ * A entrada é o primeiro dos dois momentos de movimento do site (o outro é o Decorare).
+ * Para trocar a foto, mude `slug` e `file` (arquivo do próprio projeto em projetos.ts);
+ * `pos`/`mpos` ajustam o enquadramento no desktop e no celular em pé.
  */
 const destaque = { slug: 'casa-nova-erechim', file: 'dsc06978.jpg', pos: '50% 50%', mpos: '38% 50%' };
 
@@ -15,17 +16,8 @@ const project = getProject(destaque.slug)!;
 const foto = project.images.find((i) => i.file === destaque.file)!;
 ---
 
-<script is:inline>
-  // Chegando de outra página do site, a logo já aparece pronta (sem repetir a entrada).
-  try {
-    if (document.referrer && new URL(document.referrer).origin === location.origin) {
-      document.documentElement.classList.add('hero-skip');
-    }
-  } catch (e) {}
-</script>
-
-<section class="hero" aria-labelledby="hero-title">
-  <div class="hero__media cover">
+<section class="hero" aria-labelledby="hero-title" data-hero>
+  <div class="hero__media cover" data-hero-media>
     <Picture
       src={projectImage(destaque.slug, destaque.file)}
       alt={foto.alt}
@@ -38,13 +30,19 @@ const foto = project.images.find((i) => i.file === destaque.file)!;
       style={`--pos: ${destaque.pos}; --mpos: ${destaque.mpos}`}
     />
   </div>
-  <div class="hero__shade" aria-hidden="true"></div>
+  <div class="hero__veu" aria-hidden="true"></div>
+  <div class="hero__cortina" aria-hidden="true" data-hero-cortina></div>
 
-  <h1 id="hero-title" class="hero__logo">
-    <LogoAnimada entrada label="Lucas Matté Arquitetura" />
-  </h1>
+  <div class="hero__centro">
+    <h1 id="hero-title" class="hero__logo">
+      <LogoHero />
+    </h1>
+    <!-- A frase fica visível desde a primeira pintura: é o elemento LCP da página (o Chrome
+         ignora fotos que ocupam a tela inteira) e não pode nascer invisível. -->
+    <p class="hero__frase">Arquitetura para viver. Espaços para sentir.</p>
+  </div>
 
-  <p class="hero__credit">
+  <p class="hero__credit" data-hero-tarde>
     <a href={projectHref(project.slug)}>{project.title}</a>
     <span>{projectMeta(project)}</span>
   </p>
@@ -59,14 +57,14 @@ const foto = project.images.find((i) => i.file === destaque.file)!;
     min-height: 32rem;
     overflow: hidden;
     color: var(--on-primary);
-    background: var(--ink-deep);
+    background: var(--primary);
     isolation: isolate;
   }
 
   .hero__media {
     position: absolute;
     inset: 0;
-    z-index: -2;
+    z-index: -3;
   }
   .hero__media :global(img) {
     object-position: var(--pos, 50% 50%);
@@ -77,20 +75,51 @@ const foto = project.images.find((i) => i.file === destaque.file)!;
     }
   }
 
-  /* Escurece a foto o bastante para a logo marfim ter contraste em qualquer ponto. */
-  .hero__shade {
+  /* Véu de 45% em toda a foto, reforçado atrás da logo e da frase (os vidros
+     iluminados da cristaleira passam por trás delas) e no pé, atrás do crédito. */
+  .hero__veu {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(ellipse 50% 32% at 50% 50%, rgb(20 18 16 / 0.42), rgb(20 18 16 / 0.3) 55%, rgb(20 18 16 / 0) 100%),
+      linear-gradient(to bottom, rgb(20 18 16 / 0) 62%, rgb(20 18 16 / 0.4)),
+      rgb(20 18 16 / 0.45);
+  }
+
+  /* Cortina grafite: só existe durante a entrada. */
+  .hero__cortina {
     position: absolute;
     inset: 0;
     z-index: -1;
-    background-image:
-      radial-gradient(ellipse 60% 50% at 50% 50%, rgb(20 18 16 / 0.35), rgb(20 18 16 / 0) 75%),
-      linear-gradient(to bottom, rgb(20 18 16 / 0.5), rgb(20 18 16 / 0.42) 40%, rgb(20 18 16 / 0.58) 78%, rgb(20 18 16 / 0.78));
+    background: var(--primary);
+    display: none;
+  }
+  :global(html.hero-intro) .hero__cortina {
+    display: block;
   }
 
+  .hero__centro {
+    display: grid;
+    justify-items: center;
+    gap: clamp(1.25rem, 3vw, 2rem);
+    width: 70vw;
+    text-align: center;
+  }
+  @media (min-width: 64rem) {
+    .hero__centro {
+      width: min(40vw, 640px);
+    }
+  }
   .hero__logo {
-    width: min(78vw, 46rem);
+    width: 100%;
     margin: 0;
     font: inherit;
+  }
+  .hero__frase {
+    font-size: var(--step-0);
+    letter-spacing: 0.02em;
+    text-wrap: balance;
   }
 
   .hero__credit {
@@ -120,35 +149,54 @@ const foto = project.images.find((i) => i.file === destaque.file)!;
     letter-spacing: 0.04em;
   }
 
-  /* ——— Entrada: a foto assenta e clareia enquanto a logo se forma ———
-     Faz parte do mesmo momento da logo (ver LogoAnimada.astro). */
-  @media (prefers-reduced-motion: no-preference) {
-    :global(html:not(.hero-skip)) .hero__media {
-      animation: hero-foto 2.6s var(--ease-arch) both;
-    }
-    :global(html:not(.hero-skip)) .hero__shade {
-      animation: hero-sombra 2.2s ease-out both;
-    }
-    :global(html:not(.hero-skip)) .hero__credit {
-      animation: hero-credito 0.9s var(--ease-arch) 1.7s both;
-    }
-  }
-  @keyframes hero-foto {
-    from {
-      transform: scale(1.06);
-    }
-  }
-  @keyframes hero-sombra {
-    from {
-      background-color: rgb(20 18 16 / 0.45);
-    }
-    to {
-      background-color: rgb(20 18 16 / 0);
-    }
-  }
-  @keyframes hero-credito {
-    from {
-      opacity: 0;
-    }
+  /* Estado inicial da entrada (só com html.hero-intro, decidido no <head>). */
+  :global(html.hero-intro) [data-hero-tarde] {
+    opacity: 0;
   }
 </style>
+
+<script>
+  import { animate } from 'motion/mini';
+
+  /**
+   * Entrada (~2s): a logo se revela da esquerda para a direita como um traço de croqui
+   * ("Lucas Matté" e logo depois "Arquitetura") acima da frase, a cortina grafite se abre
+   * sobre a foto, que assenta de 1,06 para 1, e por fim entram o crédito e o header.
+   * Só roda com html.hero-intro (primeira visita da sessão, sem movimento reduzido).
+   */
+  const root = document.documentElement;
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+
+  if (hero && root.classList.contains('hero-intro')) {
+    (window as unknown as { __lmHeroIntro: boolean }).__lmHeroIntro = true;
+    const TRACO: [number, number, number, number] = [0.65, 0, 0.35, 1];
+    const ASSENTA: [number, number, number, number] = [0.16, 1, 0.3, 1];
+    const fechado = 'inset(0% 100% 0% 0%)';
+    const aberto = 'inset(0% 0% 0% 0%)';
+
+    const q = <T extends Element>(sel: string, scope: ParentNode = hero) => scope.querySelector<T>(sel);
+    const topo = q('[data-logo-linha="topo"]');
+    const base = q('[data-logo-linha="base"]');
+    const cortina = q('[data-hero-cortina]');
+    const media = q('[data-hero-media]');
+    const tarde = [...hero.querySelectorAll('[data-hero-tarde]'), q('.site-header__inner', document)].filter(
+      (el): el is Element => !!el,
+    );
+
+    const passos = [
+      topo && animate(topo, { clipPath: [fechado, aberto] }, { duration: 1.1, delay: 0.1, ease: TRACO }),
+      base && animate(base, { clipPath: [fechado, aberto] }, { duration: 0.8, delay: 0.5, ease: TRACO }),
+      cortina && animate(cortina, { opacity: [1, 0] }, { duration: 1, delay: 0.6, ease: 'easeOut' }),
+      media && animate(media, { transform: ['scale(1.06)', 'scale(1)'] }, { duration: 1.6, delay: 0.5, ease: ASSENTA }),
+      ...tarde.map((el, i) =>
+        animate(el, { opacity: [0, 1], transform: ['translateY(8px)', 'translateY(0px)'] }, { duration: 0.6, delay: 1.4 + i * 0.08, ease: ASSENTA }),
+      ),
+    ].filter((a): a is NonNullable<typeof a> => !!a);
+
+    // Ao terminar, devolve tudo ao estado estático (remove os estados iniciais do CSS).
+    Promise.all(passos.map((a) => a.finished)).finally(() => {
+      root.classList.remove('hero-intro');
+      passos.forEach((a) => a.cancel());
+    });
+  }
+</script>

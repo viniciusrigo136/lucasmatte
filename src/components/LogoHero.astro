@@ -1,0 +1,102 @@
+---
+import { Image } from 'astro:assets';
+import logoSvg from '../assets/logo/logo-marfim.svg?raw';
+import logoPng from '../assets/marca/logo-marfim.png';
+
+/**
+ * Logo do hero, em duas camadas ("Lucas Matté" e "Arquitetura") para a revelação
+ * da entrada. Aceita o SVG da marca (inline, padrão) ou o PNG marfim: a animação age
+ * nas camadas, não no desenho, então trocar a fonte não exige mudar o Hero.
+ */
+interface Props {
+  fonte?: 'svg' | 'png';
+  label?: string;
+}
+const { fonte = 'svg', label = 'Lucas Matté Arquitetura' } = Astro.props;
+
+// Proporção da arte (viewBox do SVG e tamanho do PNG: 1125 × 327).
+const W = 1125;
+const H = 327;
+// Linha que separa "Lucas Matté" (acima) de "Arquitetura" (abaixo), em unidades da arte.
+const CORTE = 225;
+
+let topo = '';
+let base = '';
+if (fonte === 'svg') {
+  const d = logoSvg.match(/\sd="([^"]+)"/)?.[1];
+  if (!d) throw new Error('Logo: caminho não encontrado no SVG.');
+  // Cada contorno vai para a linha onde começa; uma casa decimal basta nesta escala.
+  for (const c of d.split(/(?=M)/)) {
+    const contorno = c.trim().replace(/-?\d+\.\d+/g, (n) => String(Math.round(Number(n) * 10) / 10));
+    if (!contorno) continue;
+    const ys = contorno.match(/-?\d+(\.\d+)?/g)!.map(Number).filter((_, i) => i % 2 === 1);
+    if (Math.min(...ys) < CORTE) topo += contorno + ' ';
+    else base += contorno + ' ';
+  }
+}
+const corte = `${((CORTE / H) * 100).toFixed(2)}%`;
+---
+
+<span class="logo-hero" role="img" aria-label={label} style={`--corte: ${corte}; aspect-ratio: ${W} / ${H}`}>
+  {
+    fonte === 'svg' ? (
+      <>
+        <span class="logo-hero__camada" data-logo-linha="topo">
+          <svg viewBox={`0 0 ${W} ${H}`} aria-hidden="true" focusable="false"><path d={topo.trim()} /></svg>
+        </span>
+        <span class="logo-hero__camada" data-logo-linha="base">
+          <svg viewBox={`0 0 ${W} ${H}`} aria-hidden="true" focusable="false"><path d={base.trim()} /></svg>
+        </span>
+      </>
+    ) : (
+      <>
+        <span class="logo-hero__recorte logo-hero__recorte--topo">
+          <span class="logo-hero__camada" data-logo-linha="topo">
+            <Image src={logoPng} alt="" widths={[640, 1125]} sizes="(min-width: 64rem) 40vw, 70vw" loading="eager" />
+          </span>
+        </span>
+        <span class="logo-hero__recorte logo-hero__recorte--base">
+          <span class="logo-hero__camada" data-logo-linha="base">
+            <Image src={logoPng} alt="" widths={[640, 1125]} sizes="(min-width: 64rem) 40vw, 70vw" loading="eager" />
+          </span>
+        </span>
+      </>
+    )
+  }
+</span>
+
+<style>
+  .logo-hero {
+    position: relative;
+    display: block;
+    width: 100%;
+  }
+  .logo-hero__camada,
+  .logo-hero__recorte {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+  .logo-hero svg,
+  .logo-hero :global(img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .logo-hero path {
+    fill: currentColor;
+    fill-rule: evenodd;
+  }
+  /* PNG: cada camada mostra só a sua linha da arte. */
+  .logo-hero__recorte--topo {
+    clip-path: inset(0 0 calc(100% - var(--corte)) 0);
+  }
+  .logo-hero__recorte--base {
+    clip-path: inset(var(--corte) 0 0 0);
+  }
+
+  /* Estado inicial da entrada (ver Hero.astro): as linhas começam fechadas à direita. */
+  :global(html.hero-intro) .logo-hero__camada {
+    clip-path: inset(0 100% 0 0);
+  }
+</style>

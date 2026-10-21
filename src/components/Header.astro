@@ -124,16 +124,27 @@ const nav = [
       opacity 0.6s var(--ease-arch),
       visibility 0.6s;
   }
-  /* O header entra no fim da formação da logo do hero (mesmo momento). */
-  @media (prefers-reduced-motion: no-preference) {
-    :global(html:not(.hero-skip)) .site-header[data-hero-logo] .site-header__inner {
-      animation: header-entra 0.9s var(--ease-arch) 1.7s both;
+  /* Na entrada do hero, o header aparece por último (animado em Hero.astro). */
+  :global(html.hero-intro) .site-header[data-hero-logo] .site-header__inner {
+    opacity: 0;
+  }
+
+  /* Home: ao rolar, o header fica sólido em grafite, com logo e textos marfim. */
+  .site-header[data-hero-logo][data-compact='true']:not(.is-open) {
+    background: rgb(48 45 41 / 0.97);
+    border-bottom-color: rgb(243 239 231 / 0.12);
+    color: var(--on-primary);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .site-header[data-hero-logo][data-compact='true']:not(.is-open) {
+      background: rgb(48 45 41 / 0.92);
     }
   }
-  @keyframes header-entra {
-    from {
-      opacity: 0;
-    }
+  .site-header[data-hero-logo][data-compact='true']:not(.is-open) .site-header__brand :global(.logo__img--dark) {
+    opacity: 0;
+  }
+  .site-header[data-hero-logo][data-compact='true']:not(.is-open) .site-header__brand :global(.logo__img--light) {
+    opacity: 1;
   }
   .site-header__brand :global(.site-header__logo) {
     width: clamp(124px, 11vw, 158px);
