@@ -41,6 +41,18 @@
   --step-5: clamp(2.6rem, 10vw, 10rem);
 }
 
+/* Tema escuro (Decorare): o bloco de destaque na home e a página /projetos/decorare.
+   Mesmos nomes de variável, então os componentes não precisam saber do tema. */
+[data-theme='dark'] {
+  --background: var(--decorare-black);
+  --surface: #0e0d0c;
+  --text-primary: #f3efe7;
+  --text-secondary: #c7b8a3;
+  --border: rgb(243 239 231 / 0.16);
+  --link-line: var(--bronze-on-dark);
+  color-scheme: dark;
+}
+
 *,
 *::before,
 *::after {

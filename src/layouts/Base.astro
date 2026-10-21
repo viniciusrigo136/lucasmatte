@@ -12,9 +12,11 @@ interface Props {
   overlayHeader?: boolean;
   /** A página abre com a logo grande no hero: a logo do header só aparece ao rolar. */
   heroLogo?: boolean;
+  /** Tema da página: 'dark' troca as variáveis de cor para o preto do Decorare. */
+  theme?: 'light' | 'dark';
 }
 
-const { title = site.title, description = site.description, ogImage, overlayHeader = false, heroLogo = false } = Astro.props;
+const { title = site.title, description = site.description, ogImage, overlayHeader = false, heroLogo = false, theme = 'light' } = Astro.props;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : ogImage;
 ---
@@ -26,7 +28,7 @@ const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : o
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#302D29" />
+    <meta name="theme-color" content={theme === 'dark' ? '#000000' : '#302D29'} />
     {canonical && <link rel="canonical" href={canonical} />}
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="pt_BR" />
@@ -58,7 +60,7 @@ const ogImageUrl = ogImage && Astro.site ? new URL(ogImage, Astro.site).href : o
     }
     <slot name="head" />
   </head>
-  <body>
+  <body data-theme={theme === 'dark' ? 'dark' : undefined}>
     <a href="#conteudo" class="skip-link">Pular para o conteúdo</a>
     <Header overlay={overlayHeader} heroLogo={heroLogo} />
     <main id="conteudo">

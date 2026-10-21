@@ -1,0 +1,177 @@
+---
+import { Picture } from 'astro:assets';
+import { projectImage, projectMeta, type ProjectData } from '../data/projetos';
+import { projectHref } from '../data/site';
+
+/**
+ * Bloco do projeto em destaque (featured) na seção Projetos: largura total, no tema
+ * do projeto. A foto principal é a capa; as menores vêm de `featuredImages`.
+ * O bloco também marca a linha do tempo da rolagem (--destaque) usada pela transição
+ * de fundo da home (ver index.astro).
+ */
+interface Props {
+  project: ProjectData;
+}
+const { project } = Astro.props;
+const href = projectHref(project.slug);
+const foto = (file: string) => project.images.find((i) => i.file === file)!;
+const capa = foto(project.cover);
+const menores = (project.featuredImages ?? []).map(foto);
+---
+
+<article class="destaque" data-theme={project.theme} data-destaque aria-labelledby={`destaque-${project.slug}`}>
+  <div class="wrap destaque__grade">
+    <figure class="destaque__principal cover">
+      <Picture
+        src={projectImage(project.slug, capa.file)}
+        alt={capa.alt}
+        widths={[480, 720, 960, 1280, 1600]}
+        sizes="(min-width: 64rem) 46vw, 100vw"
+        formats={['avif', 'webp']}
+        quality={74}
+        loading="lazy"
+        style={`view-transition-name: foto-${project.slug}`}
+      />
+    </figure>
+
+    <div class="destaque__texto">
+      <h3 id={`destaque-${project.slug}`} class="destaque__titulo">{project.title}</h3>
+      <p class="destaque__meta">{projectMeta(project)}</p>
+      <p class="destaque__resumo">{project.summary}</p>
+      {
+        project.materials && (
+          <p class="destaque__materiais">
+            <span class="visually-hidden">Materiais: </span>
+            {project.materials.join(' · ')}
+          </p>
+        )
+      }
+      <a href={href} class="text-link destaque__link">
+        Ver projeto completo<span class="visually-hidden">: {project.title}</span>
+      </a>
+    </div>
+
+    {
+      menores.length > 0 && (
+        <div class="destaque__menores">
+          {menores.map((img) => (
+            <figure class="destaque__menor cover">
+              <Picture
+                src={projectImage(project.slug, img.file)}
+                alt={img.alt}
+                widths={[320, 480, 720, 960]}
+                sizes="(min-width: 64rem) 20vw, 46vw"
+                formats={['avif', 'webp']}
+                quality={72}
+                loading="lazy"
+              />
+            </figure>
+          ))}
+        </div>
+      )
+    }
+  </div>
+</article>
+
+<style>
+  .destaque {
+    position: relative;
+    padding-block: clamp(4rem, 10vw, 9rem);
+    background: var(--background);
+    color: var(--text-primary);
+    view-timeline-name: --destaque;
+  }
+  .destaque__grade {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: auto 1fr;
+    column-gap: clamp(1rem, 2vw, 2rem);
+    row-gap: clamp(2rem, 4vw, 3.5rem);
+  }
+  .destaque figure {
+    margin: 0;
+    background: var(--surface);
+  }
+
+  .destaque__principal {
+    grid-column: 1 / span 6;
+    grid-row: 1 / span 2;
+    aspect-ratio: 4 / 5;
+  }
+
+  .destaque__texto {
+    grid-column: 8 / span 5;
+    grid-row: 1;
+    display: grid;
+    align-content: start;
+    justify-items: start;
+    gap: 1rem;
+    padding-top: clamp(0rem, 4vw, 3rem);
+  }
+  .destaque__titulo {
+    font-size: var(--step-4);
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .destaque__meta {
+    font-size: var(--step--1);
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+  }
+  .destaque__resumo {
+    max-width: 34ch;
+    font-family: var(--font-serif);
+    font-size: var(--step-1);
+    line-height: 1.45;
+  }
+  .destaque__materiais {
+    font-size: var(--step--1);
+    letter-spacing: 0.04em;
+    /* bronze do tema: escuro sobre o preto, claro se um projeto claro for o destaque */
+    color: var(--link-line, var(--bronze-on-light));
+  }
+  .destaque__link {
+    margin-top: 0.5rem;
+  }
+
+  .destaque__menores {
+    grid-column: 8 / span 5;
+    grid-row: 2;
+    align-self: end;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1rem, 2vw, 2rem);
+  }
+  .destaque__menor {
+    aspect-ratio: 3 / 4;
+  }
+  /* A segunda foto desce um pouco: as duas não formam uma fileira de cards iguais. */
+  .destaque__menor:nth-child(2) {
+    margin-top: clamp(2rem, 6vw, 5rem);
+  }
+
+  @media (max-width: 63.99rem) {
+    .destaque__grade {
+      grid-template-rows: none;
+    }
+    .destaque__principal,
+    .destaque__texto,
+    .destaque__menores {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+    .destaque__principal {
+      order: 1;
+    }
+    .destaque__menores {
+      order: 2;
+    }
+    .destaque__menor:nth-child(2) {
+      margin-top: 0;
+    }
+    .destaque__texto {
+      order: 3;
+      padding-top: 0;
+    }
+  }
+</style>

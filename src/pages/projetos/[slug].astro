@@ -65,7 +65,7 @@ const titleWords = project.title.split(' ').reduce<string[]>((lines, w) => {
 }, []);
 ---
 
-<Base title={`${project.title} | ${site.name}`} description={`${project.title}: ${project.summary}`} ogImage={og.src} overlayHeader>
+<Base title={`${project.title} | ${site.name}`} description={`${project.title}: ${project.summary}`} ogImage={og.src} overlayHeader theme={project.theme}>
   <article class="case">
     <!-- 1–3. Hero, nome e ficha -->
     <header class="case-hero">

@@ -3,32 +3,19 @@ import { Picture, getImage } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Hero from '../components/Hero.astro';
 import SectionHeading from '../components/SectionHeading.astro';
-import ProjectShowcase, { type ShowcaseLayout } from '../components/ProjectShowcase.astro';
+import ProjetoDestaque from '../components/ProjetoDestaque.astro';
+import ProjetosGrade from '../components/ProjetosGrade.astro';
 import AreasAtuacao from '../components/AreasAtuacao.astro';
-import { projetos, getProject } from '../data/projetos';
+import { projetos } from '../data/projetos';
 import { site, contactHref } from '../data/site';
 import retrato from '../assets/sobre/lucas-matte-retrato.jpg';
 import ogSrc from '../assets/projetos/igreja/dsc09501.jpg';
 
 const og = await getImage({ src: ogSrc, width: 1200, height: 630, fit: 'cover', format: 'jpg' });
 
-// Ritmo propositalmente irregular: cada projeto tem uma composição própria.
-const showcase: { slug: string; layout: ShowcaseLayout; secondary?: string; image?: string }[] = [
-  { slug: 'casa-de-campo', layout: 'left' },
-  { slug: 'casa-erechim', layout: 'right', secondary: 'dsc08514.jpg' },
-  { slug: 'casa-nova-erechim', layout: 'full' },
-  { slug: 'decorare', layout: 'pair', secondary: 'dsc08742.jpg' },
-  { slug: 'igreja', layout: 'cinema', image: 'dji-0950.jpg' },
-];
-const featured = showcase.map((s) => ({ ...s, project: getProject(s.slug)! }));
-// Projetos novos adicionados aos dados entram no fim, alternando composições.
-const extraLayouts: ShowcaseLayout[] = ['left', 'right', 'full'];
-const extras = projetos
-  .filter((p) => !showcase.some((s) => s.slug === p.slug))
-  .map((project, i) => ({ slug: project.slug, layout: extraLayouts[i % 3], project, secondary: undefined, image: undefined }));
-const all = [...featured, ...extras];
-const total = String(all.length).padStart(2, '0');
-const categories = [...new Set(all.map((s) => s.project.category))].join(', ');
+// O projeto em destaque abre a seção; os demais formam a grade, na ordem de projetos.ts.
+const destaques = projetos.filter((p) => p.featured);
+const demais = projetos.filter((p) => !p.featured);
 
 ---
 
@@ -52,17 +39,15 @@ const categories = [...new Set(all.map((s) => s.project.category))].join(', ');
     </div>
   </section>
 
-  <!-- Projetos -->
+  <!-- Projetos: destaque (Decorare) + grade. A passagem pelo destaque é o segundo
+       momento de movimento do site: o fundo da página vai do marfim ao preto e volta. -->
   <section id="projetos" class="projects" aria-labelledby="projetos-title">
     <div class="wrap projects__head">
-      <SectionHeading lines={['Projetos']} id="projetos-title" />
-      <p class="projects__count">
-        <span>{total}</span> {categories}
-      </p>
+      <SectionHeading lines={['Projetos']} id="projetos-title" class="projects__title" />
     </div>
-
-    <div class="projects__list">
-      {all.map((s) => <ProjectShowcase project={s.project} layout={s.layout} secondary={s.secondary} image={s.image} />)}
+    {destaques.map((project) => <ProjetoDestaque project={project} />)}
+    <div class="projects__grade">
+      <ProjetosGrade projects={demais} />
     </div>
   </section>
 
@@ -132,8 +117,9 @@ const categories = [...new Set(all.map((s) => s.project.category))].join(', ');
 </Base>
 
 <style>
+  /* Sem fundo próprio: deixa aparecer a cor do body, que muda na passagem pelo destaque. */
   .stage {
-    background: var(--background);
+    background: transparent;
   }
 
   /* ——— Manifesto ——— */
@@ -177,35 +163,14 @@ const categories = [...new Set(all.map((s) => s.project.category))].join(', ');
 
   /* ——— Projetos ——— */
   .projects {
+    padding-top: clamp(6rem, 9vw, 8rem);
     padding-bottom: clamp(5rem, 12vw, 10rem);
   }
   .projects__head {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
-    align-items: end;
-    gap: 2rem;
-    margin-bottom: clamp(4rem, 9vw, 8rem);
+    margin-bottom: clamp(3rem, 7vw, 6rem);
   }
-  .projects__count {
-    max-width: 18rem;
-    font-size: var(--step--1);
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-secondary);
-    text-align: right;
-  }
-  .projects__count span {
-    display: block;
-    font-family: var(--font-serif);
-    font-size: 1.5rem;
-    letter-spacing: 0;
-    color: var(--text-primary);
-  }
-  .projects__list {
-    display: grid;
-    gap: clamp(7rem, 16vw, 14rem);
+  .projects__grade {
+    margin-top: clamp(5rem, 12vw, 10rem);
   }
 
   /* ——— Escritório ——— */
@@ -359,4 +324,123 @@ const categories = [...new Set(all.map((s) => s.project.category))].join(', ');
       min-height: 88svh;
     }
   }
+
+  /* ——— Passagem pelo destaque: marfim → preto → marfim ———
+     Com suporte a scroll-driven animations, a cor segue a rolagem na linha do tempo do
+     bloco (--destaque, em ProjetoDestaque.astro). A gradação acontece só em trechos em
+     que, fora do bloco preto, aparecem fotos ou o título grande:
+       entrada: enquanto o topo do bloco vai de 25% da tela até o topo (o espaço acima
+                de "Projetos" mantém a seção anterior fora da tela nesse trecho);
+       saída:   enquanto a base do bloco sobe de 100% a 70% da tela (abaixo dele, só o
+                espaço e o começo da primeira foto da grade).
+     O título troca de grafite para marfim no ponto em que as duas cores empatam
+     (3,5:1; o mínimo para texto grande é 3:1).
+     Sem suporte, ou com movimento reduzido, o script abaixo liga .decorare-ativo. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      :global(body) {
+        timeline-scope: --destaque;
+        animation: fundo-destaque linear both;
+        animation-timeline: --destaque;
+        animation-range: entry 0% exit 30%;
+      }
+      .projects :global(.projects__title) {
+        /* step-end: a cor do título salta entre os keyframes, sem tons intermediários */
+        animation: titulo-destaque step-end both;
+        animation-timeline: --destaque;
+        animation-range: entry 0% exit 30%;
+      }
+      :global(.site-header[data-hero-logo][data-compact='true']:not(.is-open)) {
+        animation: header-destaque linear both;
+        animation-timeline: --destaque;
+        animation-range: entry 0% exit 30%;
+      }
+    }
+  }
+  @keyframes fundo-destaque {
+    entry 0%,
+    entry 75% {
+      background-color: var(--background);
+    }
+    entry 100%,
+    exit 0% {
+      background-color: var(--decorare-black);
+    }
+    exit 30% {
+      background-color: var(--background);
+    }
+  }
+  @keyframes titulo-destaque {
+    entry 0% {
+      color: var(--text-primary);
+    }
+    entry 86.7% {
+      color: var(--on-primary);
+    }
+    exit 16%,
+    exit 30% {
+      color: var(--text-primary);
+    }
+  }
+  @keyframes header-destaque {
+    entry 0%,
+    entry 75% {
+      background-color: rgb(48 45 41 / 0.92);
+    }
+    entry 100%,
+    exit 0% {
+      background-color: var(--decorare-black);
+    }
+    exit 30% {
+      background-color: rgb(48 45 41 / 0.92);
+    }
+  }
+
+  /* Alternativa por classe (sem scroll-driven animations ou com movimento reduzido). */
+  :global(html.decorare-ativo body) {
+    background-color: var(--decorare-black);
+  }
+  :global(html.decorare-ativo) .projects :global(.projects__title) {
+    color: var(--on-primary);
+  }
+  :global(html.decorare-ativo .site-header[data-hero-logo][data-compact='true']:not(.is-open)) {
+    background-color: var(--decorare-black);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :global(body),
+    :global(.site-header[data-hero-logo]) {
+      transition: background-color 0.8s ease;
+    }
+    /* O título troca de cor de uma vez, no meio da gradação do fundo. */
+    .projects :global(.projects__title) {
+      transition: color 0s linear 0.37s;
+    }
+  }
 </style>
+
+<script>
+  // Alternativa à animação por rolagem: liga .decorare-ativo só enquanto o bloco de
+  // destaque cobre a tela de 15% a 85% da altura (assim, durante a troca de cor, fora
+  // dele aparecem apenas o título grande ou o começo de uma foto).
+  const destaque = document.querySelector<HTMLElement>('[data-destaque]');
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const porRolagem = CSS.supports('animation-timeline: view()') && !reduce;
+  if (destaque && !porRolagem) {
+    let pendente = false;
+    const atualiza = () => {
+      const r = destaque.getBoundingClientRect();
+      const h = window.innerHeight;
+      document.documentElement.classList.toggle('decorare-ativo', r.top <= h * 0.15 && r.bottom >= h * 0.85);
+      pendente = false;
+    };
+    const agenda = () => {
+      if (!pendente) {
+        pendente = true;
+        requestAnimationFrame(atualiza);
+      }
+    };
+    window.addEventListener('scroll', agenda, { passive: true });
+    window.addEventListener('resize', agenda);
+    atualiza();
+  }
+</script>

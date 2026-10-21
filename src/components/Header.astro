@@ -129,6 +129,19 @@ const nav = [
     opacity: 0;
   }
 
+  /* Página em tema escuro (Decorare): ao rolar, header preto com logo e textos marfim. */
+  :global(body[data-theme='dark']) .site-header[data-compact='true']:not(.is-open) {
+    background: rgb(0 0 0 / 0.94);
+    border-bottom-color: rgb(243 239 231 / 0.12);
+    color: var(--on-primary);
+  }
+  :global(body[data-theme='dark']) .site-header[data-compact='true']:not(.is-open) .site-header__brand :global(.logo__img--dark) {
+    opacity: 0;
+  }
+  :global(body[data-theme='dark']) .site-header[data-compact='true']:not(.is-open) .site-header__brand :global(.logo__img--light) {
+    opacity: 1;
+  }
+
   /* Home: ao rolar, o header fica sólido em grafite, com logo e textos marfim. */
   .site-header[data-hero-logo][data-compact='true']:not(.is-open) {
     background: rgb(48 45 41 / 0.97);

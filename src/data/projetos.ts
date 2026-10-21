@@ -32,6 +32,14 @@ export interface ProjectData {
   summary: string;
   description: string[];
   cover: string;
+  /** Tema da página do projeto e do bloco de destaque: 'dark' usa o preto do Decorare. */
+  theme: 'light' | 'dark';
+  /** Projeto em destaque na home (bloco próprio antes da grade). */
+  featured?: boolean;
+  /** Fotos secundárias do bloco de destaque (arquivos do próprio projeto). */
+  featuredImages?: string[];
+  /** Materiais citados no bloco de destaque. */
+  materials?: string[];
   /** Pasta de origem no Drive (referência interna, não exibida). */
   source: string;
   images: ProjectImageData[];
@@ -49,6 +57,7 @@ export const projetos: ProjectData[] = [
       'Por dentro, a estrutura de madeira do telhado fica à vista e recebe iluminação quente embutida. Cozinha, bar e mesa de refeições dividem o mesmo salão, com esquadrias que trazem o verde para dentro.',
     ],
     cover: 'dsc09265.jpg',
+    theme: 'light',
     source: 'LUCAS MATTÉ CASA',
     images: [
       { file: 'dsc09265.jpg', alt: 'Casa térrea de tijolo aparente e madeira com telhado de quatro águas, diante de um gramado amplo e árvores.' },
@@ -74,6 +83,7 @@ export const projetos: ProjectData[] = [
       'Nos interiores, a lareira revestida em pedra organiza a sala, acompanhada de cortinas de piso a teto, pendente em anéis e mesa de jantar em madeira sob um lustre de lâmpadas aparentes.',
     ],
     cover: 'dsc08618.jpg',
+    theme: 'light',
     source: 'CASA ERECHIM LUCAS MATTÉ',
     images: [
       { file: 'dsc08553.jpg', alt: 'Fachada com pilar revestido em pedra, porta pivotante escura e beiral com iluminação embutida.' },
@@ -97,6 +107,10 @@ export const projetos: ProjectData[] = [
       'A luz baixa e as cores intensas — como o vermelho do lavabo e o papel de parede de motivos tropicais — dão a cada espaço uma atmosfera própria.',
     ],
     cover: 'dsc08706.jpg',
+    theme: 'dark',
+    featured: true,
+    featuredImages: ['dsc08742.jpg', 'dsc08668.jpg'],
+    materials: ['Pedra', 'Metais dourados', 'Vegetação'],
     source: 'LUCAS MATTÉ DECORARE',
     images: [
       { file: 'dsc08706.jpg', alt: 'Lavabo com paredes vermelhas, cubas em pedra verde, espelhos em arco e arandelas douradas.' },
@@ -121,6 +135,7 @@ export const projetos: ProjectData[] = [
       'Na sala de estar, a lareira em mármore recebe um capitel de pedra rústica; o banheiro é revestido em pedra escura com metais dourados.',
     ],
     cover: 'dsc06978.jpg',
+    theme: 'light',
     source: 'FOTOS CASA NOVA ERECHIM - LUCAS MATTÉ',
     images: [
       { file: 'dsc06978.jpg', alt: 'Adega com garrafas fixadas em hastes douradas sobre parede de pedra, ao lado de cristaleira iluminada.' },
@@ -145,6 +160,7 @@ export const projetos: ProjectData[] = [
       'Por dentro, o forro com sancas iluminadas conduz o olhar até o altar; nichos emoldurados recebem as imagens e as janelas em arco abrem a nave para a paisagem.',
     ],
     cover: 'dji-0049.jpg',
+    theme: 'light',
     source: 'IGREJA LUCAS MATTÉ',
     images: [
       { file: 'dsc09501.jpg', alt: 'Fachada da igreja ao anoitecer, com as duas torres em pedra iluminadas e a cruz em destaque na empena central.' },
